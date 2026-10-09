@@ -1,0 +1,3055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Roamly — Know it. Walk it. Love it.</title>
+  <meta name="description" content="Roamly: Smart location-based exploration & everywhere navigation app. India-first, works in cities, villages, farms, and offline. Plus Codes, landmark navigation, safety glow, and AI decision engine.">
+  <meta name="theme-color" content="#090d16">
+
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS & JS from CDNJS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" integrity="sha512-Zcn6gR+2v294/z71h8mK1B46X9XhI5sE3L18428K128Qx9f2913C3M3k4eR+eF+E" crossorigin="" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js" integrity="sha512-BwHfrr4c9kmRkLw6Av48PguuhcR3zEZBQ9795cCf0053fS5ekM5c2U9z/q/gU887L8jFmC0t0k5f1R0110300==" crossorigin=""></script>
+
+  <!-- Chart.js from CDNJS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha512-CQBWl4fJHWRIzpQRCTBRRbZpdP34OCG59VC49H87G2pP36f4E61j9556C0y80029G3055403e0F2f02931==" crossorigin=""></script>
+
+  <style>
+    /* =====================================================================
+       ROAMLY DESIGN SYSTEM & THEMES
+       ===================================================================== */
+    :root {
+      --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+      /* Dusk City / Dusk Village (Default) */
+      --bg: #090d16;
+      --surface: rgba(18, 24, 38, 0.82);
+      --surface-card: rgba(26, 34, 52, 0.78);
+      --surface-hover: rgba(38, 48, 72, 0.88);
+      --border: rgba(255, 255, 255, 0.12);
+      --border-focus: rgba(45, 212, 191, 0.5);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      
+      --accent: #14b8a6;         /* Teal */
+      --accent-glow: rgba(20, 184, 166, 0.35);
+      --accent-warm: #f59e0b;    /* Amber / Saffron */
+      --safe: #10b981;           /* Mint Green */
+      --safe-glow: rgba(16, 185, 129, 0.4);
+      --warn: #f59e0b;           /* Amber caution */
+      --warn-glow: rgba(245, 158, 11, 0.4);
+      --danger: #ef4444;         /* Coral red */
+      --danger-glow: rgba(239, 68, 68, 0.4);
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
+      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+      --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5);
+      --glass-blur: blur(16px);
+      --transition-smooth: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    body[data-theme="neon"] {
+      --bg: #05050b;
+      --surface: rgba(15, 13, 26, 0.85);
+      --surface-card: rgba(23, 19, 41, 0.8);
+      --border: rgba(236, 72, 153, 0.25);
+      --accent: #ec4899;
+      --accent-glow: rgba(236, 72, 153, 0.45);
+      --accent-warm: #8b5cf6;
+      --safe: #06b6d4;
+    }
+    body[data-theme="morning"] {
+      --bg: #151d28;
+      --surface: rgba(28, 38, 52, 0.85);
+      --surface-card: rgba(36, 49, 66, 0.8);
+      --border: rgba(251, 191, 36, 0.18);
+      --accent: #f59e0b;
+      --accent-glow: rgba(245, 158, 11, 0.35);
+      --accent-warm: #10b981;
+    }
+    body[data-theme="monsoon"] {
+      --bg: #0b131e;
+      --surface: rgba(15, 27, 43, 0.85);
+      --surface-card: rgba(22, 38, 60, 0.8);
+      --border: rgba(56, 189, 248, 0.2);
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.4);
+      --accent-warm: #818cf8;
+    }
+    body[data-theme="heritage"] {
+      --bg: #14100c;
+      --surface: rgba(33, 25, 18, 0.88);
+      --surface-card: rgba(46, 35, 25, 0.82);
+      --border: rgba(217, 119, 6, 0.25);
+      --accent: #d97706;
+      --accent-glow: rgba(217, 119, 6, 0.4);
+      --accent-warm: #b45309;
+      --safe: #84cc16;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.5;
+      font-size: 15px;
+      transition: background-color 0.6s ease;
+      padding-bottom: 74px; /* Space for mobile bottom bar */
+    }
+
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .skip-link {
+      position: absolute;
+      top: -40px;
+      left: 10px;
+      background: var(--accent);
+      color: #000;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      z-index: 10000;
+      transition: top 0.2s ease;
+    }
+    .skip-link:focus { top: 10px; }
+
+    .glass-panel {
+      background: var(--surface);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      transition: var(--transition-smooth);
+    }
+    .glass-card {
+      background: var(--surface-card);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition-smooth);
+    }
+    .glass-card:hover {
+      background: var(--surface-hover);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Site Header */
+    header.site-header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      backdrop-filter: var(--glass-blur);
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+    }
+    .brand-logo-svg {
+      width: 38px;
+      height: 38px;
+      filter: drop-shadow(0 0 8px var(--accent-glow));
+      flex-shrink: 0;
+    }
+    .brand-title {
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 1.35rem;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .brand-tagline {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      display: block;
+      margin-top: -3px;
+    }
+
+    .mood-ring-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      max-width: 360px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mood-ring-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--safe);
+      box-shadow: 0 0 10px var(--safe);
+      animation: pulse-ring 2.4s infinite;
+      flex-shrink: 0;
+    }
+    @keyframes pulse-ring {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.25); }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-primary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+    .btn-icon:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: var(--accent);
+      transform: scale(1.05);
+    }
+
+    /* Main Navigation Bar (Bottom on Mobile, Top Bar on Desktop) */
+    .main-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 8px 12px;
+      background: rgba(9, 13, 22, 0.94);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border);
+      z-index: 1000;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+    }
+    @media (min-width: 900px) {
+      .main-nav {
+        position: sticky;
+        top: 61px;
+        bottom: auto;
+        border-top: none;
+        border-bottom: 1px solid var(--border);
+        justify-content: center;
+        gap: 6px;
+      }
+      body { padding-bottom: 20px; }
+    }
+
+    .nav-tab-btn {
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 0.78rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      min-width: 52px;
+    }
+    @media (min-width: 900px) {
+      .nav-tab-btn {
+        flex-direction: row;
+        font-size: 0.88rem;
+        padding: 8px 16px;
+        gap: 6px;
+      }
+    }
+    .nav-tab-btn:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .nav-tab-btn.active {
+      color: #000;
+      background: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+
+    /* App Container */
+    .app-container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Feature Hub Grid */
+    .feature-hub-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+    }
+    .feature-card {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      cursor: pointer;
+      border-left: 4px solid var(--accent);
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+    }
+    .feature-icon-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 4px;
+    }
+
+    /* Category Shortcuts Big Icons Row */
+    .category-shortcuts-scroll {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 6px 2px;
+      scrollbar-width: none;
+    }
+    .category-shortcuts-scroll::-webkit-scrollbar { display: none; }
+    .cat-shortcut-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      min-width: 72px;
+      padding: 10px 8px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      text-align: center;
+    }
+    .cat-shortcut-item:hover, .cat-shortcut-item.active {
+      background: rgba(20, 184, 166, 0.18);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .cat-shortcut-icon {
+      font-size: 1.6rem;
+      line-height: 1;
+    }
+    .cat-shortcut-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+    }
+
+    /* Contextual "Try This" Chips */
+    .try-this-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 2px;
+      scrollbar-width: none;
+    }
+    .try-this-chip {
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      background: linear-gradient(135deg, rgba(20, 184, 166, 0.15), rgba(245, 158, 11, 0.15));
+      border: 1px solid var(--accent);
+      color: var(--text-primary);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: var(--transition-smooth);
+    }
+    .try-this-chip:hover {
+      background: var(--accent);
+      color: #000;
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    /* Explore India Showcase Scroll */
+    .india-showcase-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 14px;
+      overflow-x: auto;
+    }
+    .india-city-card {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      cursor: pointer;
+      border-radius: var(--radius-md);
+      position: relative;
+    }
+    .india-city-card:hover {
+      border-color: var(--accent);
+      transform: scale(1.02);
+    }
+
+    /* Compass / Beeline Canvas View */
+    .compass-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+      gap: 14px;
+    }
+    #compass-canvas {
+      width: 260px;
+      height: 260px;
+      max-width: 100%;
+    }
+
+    /* Turn-by-Turn Landmark Directions Deck */
+    .landmark-step-item {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 14px;
+      border-radius: var(--radius-md);
+      background: rgba(0, 0, 0, 0.3);
+      border-left: 4px solid var(--accent);
+      transition: var(--transition-smooth);
+    }
+    .landmark-step-item.active {
+      border-left-color: var(--safe);
+      background: rgba(16, 185, 129, 0.12);
+    }
+    .step-turn-icon {
+      font-size: 1.8rem;
+      line-height: 1;
+      min-width: 36px;
+      text-align: center;
+    }
+
+    /* Command Palette Modal */
+    #modal-cmd-palette {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(10px);
+      z-index: 10005;
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 16px;
+    }
+    #modal-cmd-palette.active { display: flex; }
+    .cmd-palette-box {
+      width: 100%;
+      max-width: 580px;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+    }
+    .cmd-palette-input {
+      width: 100%;
+      padding: 16px 20px;
+      background: rgba(12, 16, 26, 0.95);
+      border: none;
+      border-bottom: 1px solid var(--border);
+      color: #fff;
+      font-size: 1.1rem;
+      font-family: var(--font-body);
+      outline: none;
+    }
+    .cmd-results-list {
+      max-height: 360px;
+      overflow-y: auto;
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+    }
+    .cmd-item {
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      transition: var(--transition-smooth);
+    }
+    .cmd-item:hover, .cmd-item.selected {
+      background: rgba(20, 184, 166, 0.2);
+    }
+
+    /* Floating Radial Menu */
+    .radial-hub-btn {
+      position: fixed;
+      bottom: 86px;
+      right: 20px;
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #000;
+      border: 2px solid #fff;
+      box-shadow: 0 6px 20px var(--accent-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 998;
+      transition: var(--transition-smooth);
+      font-size: 1.3rem;
+    }
+    .radial-menu-items {
+      position: fixed;
+      bottom: 86px;
+      right: 20px;
+      z-index: 997;
+      pointer-events: none;
+    }
+    .radial-sub-btn {
+      position: absolute;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      transform: translate(0, 0) scale(0.5);
+      transition: var(--transition-smooth);
+      box-shadow: var(--shadow-md);
+      pointer-events: auto;
+      font-size: 1.1rem;
+    }
+    .radial-open .radial-sub-1 { opacity: 1; transform: translate(-65px, -15px) scale(1); }
+    .radial-open .radial-sub-2 { opacity: 1; transform: translate(-50px, -65px) scale(1); }
+    .radial-open .radial-sub-3 { opacity: 1; transform: translate(0px, -85px) scale(1); }
+    .radial-open .radial-sub-4 { opacity: 1; transform: translate(50px, -65px) scale(1); }
+    .radial-open .radial-sub-5 { opacity: 1; transform: translate(65px, -15px) scale(1); }
+
+    /* Floating SOS Button */
+    .floating-sos-btn {
+      position: fixed;
+      bottom: 86px;
+      left: 20px;
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: #fff;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 8px 24px rgba(239, 68, 68, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 999;
+      transition: var(--transition-smooth);
+      animation: sos-pulse 2s infinite;
+    }
+    @keyframes sos-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { box-shadow: 0 0 0 16px rgba(239, 68, 68, 0); }
+    }
+
+    /* Search bar & Autocomplete */
+    .hero-search-bar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+    .search-input-group {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .city-search-input {
+      width: 100%;
+      padding: 12px 14px 12px 42px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      outline: none;
+      transition: var(--transition-smooth);
+    }
+    .city-search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 14px var(--accent-glow);
+    }
+
+    /* Common Buttons */
+    .btn-primary {
+      padding: 10px 18px;
+      border-radius: var(--radius-full);
+      background: var(--accent);
+      color: #000;
+      border: none;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: var(--transition-smooth);
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+    .btn-primary:hover { transform: translateY(-2px); }
+    .btn-secondary {
+      padding: 10px 16px;
+      border-radius: var(--radius-full);
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: var(--transition-smooth);
+    }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.16); }
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+      box-shadow: 0 4px 14px var(--danger-glow);
+    }
+
+    /* Badges */
+    .badge-pill {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-safe { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .badge-caution { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .badge-alert { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+
+    /* Module Visibility */
+    .module-section {
+      display: none;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .module-section.active { display: flex; }
+
+    /* Map container */
+    #map-view {
+      width: 100%;
+      height: 520px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      z-index: 10;
+    }
+
+    .custom-marker-pin {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
+    .pin-food { background: #f59e0b; }
+    .pin-historic { background: #8b5cf6; }
+    .pin-chill { background: #10b981; }
+    .pin-hotel { background: #06b6d4; }
+    .pin-police { background: #3b82f6; }
+    .pin-hospital { background: #ec4899; }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 10001;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-content {
+      width: 100%;
+      max-width: 580px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 24px;
+      position: relative;
+    }
+
+    /* Cinematic Intro Overlay */
+    #cinematic-intro {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background: radial-gradient(circle at center, #0e1628 0%, #030712 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+      transition: opacity 0.8s ease, visibility 0.8s ease;
+    }
+    #cinematic-intro.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    #globe-canvas {
+      width: 250px;
+      height: 250px;
+      margin-bottom: 16px;
+    }
+    .intro-title {
+      font-family: var(--font-heading);
+      font-size: 3rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #fff 40%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+    .intro-tagline {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+    .intro-word {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .intro-word.visible {
+      opacity: 1;
+      transform: translateY(0);
+      color: #fff;
+    }
+
+    /* Waveform Canvas */
+    #waveform-canvas {
+      width: 100%;
+      height: 48px;
+      border-radius: var(--radius-sm);
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body data-theme="dusk">
+
+  <!-- Fullscreen Animated Background Scene -->
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+  <!-- Confetti Canvas -->
+  <canvas id="confetti-canvas" style="position:fixed; inset:0; pointer-events:none; z-index:10002;" aria-hidden="true"></canvas>
+
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- =====================================================================
+       CINEMATIC INTRO OVERLAY (India-First Defaults)
+       ===================================================================== -->
+  <div id="cinematic-intro" role="dialog" aria-modal="true" aria-label="Welcome to Roamly">
+    <canvas id="globe-canvas" width="250" height="250" aria-label="Rotating World Globe"></canvas>
+    <h1 class="intro-title">Roamly</h1>
+    <div class="intro-tagline" aria-label="Tagline: Know it. Walk it. Love it.">
+      <span class="intro-word" id="word-1">Know it.</span>
+      <span class="intro-word" id="word-2">Walk it.</span>
+      <span class="intro-word" id="word-3" style="color:var(--accent);">Love it.</span>
+    </div>
+    <div style="max-width: 460px; width: 100%; display: flex; flex-direction: column; gap: 12px;">
+      <div style="position: relative;">
+        <input type="text" id="intro-city-input" class="city-search-input" placeholder="Type ANY city, town, village or Plus Code..." aria-label="Type place or Plus Code" style="padding-left: 18px;">
+      </div>
+      <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+        <button type="button" class="btn-secondary intro-quick-city" data-name="New Delhi, India" data-lat="28.6139" data-lng="77.2090">🇮🇳 Delhi</button>
+        <button type="button" class="btn-secondary intro-quick-city" data-name="Mumbai, India" data-lat="19.0760" data-lng="72.8777">🌊 Mumbai</button>
+        <button type="button" class="btn-secondary intro-quick-city" data-name="Varanasi, India" data-lat="25.3176" data-lng="82.9739">🛕 Varanasi</button>
+        <button type="button" class="btn-secondary intro-quick-city" data-name="Jaipur, India" data-lat="26.9124" data-lng="75.7873">🏰 Jaipur</button>
+        <button type="button" class="btn-secondary intro-quick-city" data-name="Village Pipli, Haryana" data-lat="29.9695" data-lng="76.8783">🌾 Village</button>
+      </div>
+      <div style="display: flex; gap: 10px; justify-content: center; margin-top: 6px;">
+        <button type="button" id="btn-intro-geo" class="btn-primary" style="font-size: 0.88rem;">
+          📍 Use My GPS Location
+        </button>
+        <button type="button" id="btn-skip-intro" class="btn-secondary" style="font-size: 0.88rem;">
+          Skip Intro →
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       SITE HEADER
+       ===================================================================== -->
+  <header class="site-header">
+    <div class="brand-wrap" id="brand-logo-trigger" title="Roamly — Home">
+      <svg class="brand-logo-svg" viewBox="0 0 48 48" fill="none">
+        <defs>
+          <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#2dd4bf" />
+            <stop offset="100%" stop-color="#f59e0b" />
+          </linearGradient>
+        </defs>
+        <circle cx="24" cy="24" r="22" stroke="url(#logo-grad)" stroke-width="2" stroke-dasharray="4 3" opacity="0.6"/>
+        <path d="M24 6 C15.16 6 8 13.16 8 22 C8 32 24 44 24 44 C24 44 40 32 40 22 C40 13.16 32.84 6 24 6 Z" fill="url(#logo-grad)"/>
+        <circle cx="24" cy="20" r="7" fill="#090d16"/>
+        <circle cx="24" cy="20" r="3.5" fill="#f59e0b"/>
+        <line x1="24" y1="12" x2="24" y2="9" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"/>
+        <line x1="32" y1="20" x2="35" y2="20" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"/>
+        <line x1="16" y1="20" x2="13" y2="20" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <span class="brand-title">Roamly</span>
+        <span class="brand-tagline">Know it. Walk it. Love it.</span>
+      </div>
+    </div>
+
+    <!-- Mood Ring Live Headline -->
+    <div class="mood-ring-pill" id="city-mood-ring" title="Live Area Mood">
+      <span class="mood-ring-indicator" id="mood-indicator-dot"></span>
+      <span id="mood-headline-text">Delhi: Pleasant Evening • 24°C • Safe, lively vibe</span>
+    </div>
+
+    <!-- Header Actions -->
+    <div class="header-actions">
+      <!-- Command Palette Quick Trigger -->
+      <button type="button" class="btn-icon" id="btn-open-cmd" title="Command Palette (Ctrl+K or /)" aria-label="Open command palette">
+        ⌨️
+      </button>
+
+      <!-- Language Switcher Quick Trigger -->
+      <button type="button" class="btn-icon" id="btn-quick-lang" title="Change Language / भाषा" aria-label="Change language">
+        🌐
+      </button>
+
+      <!-- Sound Toggle -->
+      <button type="button" class="btn-icon" id="btn-sound-toggle" title="Toggle Web Audio" aria-label="Toggle sound">
+        <span id="icon-sound-state">🔇</span>
+      </button>
+
+      <!-- Theme Palette -->
+      <button type="button" class="btn-icon" id="btn-theme-palette" title="Change Theme" aria-label="Change theme">
+        🎨
+      </button>
+
+      <!-- Settings -->
+      <button type="button" class="btn-icon" id="btn-open-settings" title="Roamly Settings" aria-label="Open settings">
+        ⚙️
+      </button>
+    </div>
+  </header>
+
+  <!-- =====================================================================
+       MAIN NAVIGATION TABS (Hub, Discover, Time Walk, Go, Face-Off, Pulse, Navi, Passport)
+       ===================================================================== -->
+  <nav class="main-nav" aria-label="Main module navigation">
+    <button type="button" class="nav-tab-btn active" data-module="hub">
+      <span style="font-size:1.1rem;">🏠</span>
+      <span>Feature Hub</span>
+    </button>
+    <button type="button" class="nav-tab-btn" data-module="discover">
+      <span style="font-size:1.1rem;">🧭</span>
+      <span>Discover</span>
+    </button>
+    <button type="button" class="nav-tab-btn" data-module="timewalk">
+      <span style="font-size:1.1rem;">⏳</span>
+      <span>Time Walk</span>
+    </button>
+    <button type="button" class="nav-tab-btn" data-module="go">
+      <span style="font-size:1.1rem;">🚶</span>
+      <span>Go / Navigate</span>
+    </button>
+    <button type="button" class="nav-tab-btn" data-module="faceoff">
+      <span style="font-size:1.1rem;">⚖️</span>
+      <span>Face-Off</span>
+    </button>
+    <button type="button" class="nav-tab-btn" data-module="pulse">
+      <span style="font-size:1.1rem;">📊</span>
+      <span>Pulse</span>
+    </button>
+    <button type="button" class="nav-tab-btn" data-module="navi">
+      <span style="font-size:1.1rem;">🤖</span>
+      <span>Navi AI</span>
+    </button>
+    <button type="button" class="nav-tab-btn" data-module="passport">
+      <span style="font-size:1.1rem;">🎖️</span>
+      <span>Passport</span>
+    </button>
+  </nav>
+
+  <!-- =====================================================================
+       MAIN APP CONTAINER
+       ===================================================================== -->
+  <main id="main-content" class="app-container">
+
+    <!-- Global Top Bar: Search, Plus Code, Category Shortcuts, Time Slider -->
+    <section class="glass-panel" style="padding: 16px 20px;" aria-label="Search and Navigation Shortcuts">
+      <div class="hero-search-bar" style="margin-bottom: 12px;">
+        <div class="search-input-group">
+          <span style="position: absolute; left: 14px; font-size: 1rem; color: var(--text-secondary); pointer-events: none;">🔍</span>
+          <input type="text" id="app-search-input" class="city-search-input" placeholder="Search ANY city, village, landmark (Mandir, Clinic, Chowk) or Plus Code..." aria-label="Search place" autocomplete="off">
+          <div id="city-autocomplete-dropdown" style="display:none; position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:2000; background:var(--surface); backdrop-filter:var(--glass-blur); border:1px solid var(--border); border-radius:var(--radius-md); box-shadow:var(--shadow-lg); max-height:240px; overflow-y:auto;"></div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" id="btn-use-gps" class="btn-secondary" title="Use GPS Location">
+            📍 GPS
+          </button>
+          <button type="button" id="btn-toggle-compass" class="btn-primary" title="Toggle Compass / Beeline Mode">
+            🧭 Compass
+          </button>
+        </div>
+      </div>
+
+      <!-- Plus Code Share Pill & Current Location Label -->
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; font-size: 0.82rem;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="badge-pill badge-safe">🇮🇳 INDIA REGION</span>
+          <span id="current-location-text" style="font-weight: 700; color: #fff;">New Delhi, India</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="color: var(--text-muted);">Plus Code:</span>
+          <span id="plus-code-display" class="badge-pill" style="background: rgba(255,255,255,0.08); font-family: monospace; font-size: 0.85rem; cursor: pointer;" title="Click to copy Plus Code">7JWVJ67H+5R 📋</span>
+        </div>
+      </div>
+
+      <!-- Everyday Essential Category Shortcuts (Big Touch Icons) -->
+      <div style="margin-bottom: 12px;">
+        <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
+          Everyday Essentials (Tap to Find):
+        </div>
+        <div class="category-shortcuts-scroll" id="essential-shortcuts-row">
+          <div class="cat-shortcut-item" data-cat="hospital" title="Find nearest clinic or hospital">
+            <span class="cat-shortcut-icon">🏥</span>
+            <span class="cat-shortcut-label">PHC/Hospital</span>
+          </div>
+          <div class="cat-shortcut-item" data-cat="pharmacy" title="Find medical store">
+            <span class="cat-shortcut-icon">💊</span>
+            <span class="cat-shortcut-label">Pharmacy</span>
+          </div>
+          <div class="cat-shortcut-item" data-cat="bus" title="Find bus stand">
+            <span class="cat-shortcut-icon">🚌</span>
+            <span class="cat-shortcut-label">Bus Stand</span>
+          </div>
+          <div class="cat-shortcut-item" data-cat="petrol" title="Find petrol pump">
+            <span class="cat-shortcut-icon">⛽</span>
+            <span class="cat-shortcut-label">Petrol Pump</span>
+          </div>
+          <div class="cat-shortcut-item" data-cat="atm" title="Find ATM / Bank">
+            <span class="cat-shortcut-icon">🏧</span>
+            <span class="cat-shortcut-label">ATM / Bank</span>
+          </div>
+          <div class="cat-shortcut-item" data-cat="market" title="Find kirana or mandi">
+            <span class="cat-shortcut-icon">🛒</span>
+            <span class="cat-shortcut-label">Kirana/Market</span>
+          </div>
+          <div class="cat-shortcut-item" data-cat="school" title="Find school / college">
+            <span class="cat-shortcut-icon">🏫</span>
+            <span class="cat-shortcut-label">School</span>
+          </div>
+          <div class="cat-shortcut-item" data-cat="police" title="Find police chowki">
+            <span class="cat-shortcut-icon">👮</span>
+            <span class="cat-shortcut-label">Police</span>
+          </div>
+          <div class="cat-shortcut-item" data-cat="water" title="Find drinking water tap">
+            <span class="cat-shortcut-icon">💧</span>
+            <span class="cat-shortcut-label">Clean Water</span>
+          </div>
+          <div class="cat-shortcut-item" data-cat="toilet" title="Find public toilet">
+            <span class="cat-shortcut-icon">🚻</span>
+            <span class="cat-shortcut-label">Toilet</span>
+          </div>
+          <div class="cat-shortcut-item" data-cat="temple" title="Find Mandir / Mosque / Gurudwara / Church">
+            <span class="cat-shortcut-icon">🛕</span>
+            <span class="cat-shortcut-label">Temple/Faith</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contextual "Try This" Chips Row -->
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; overflow-x: auto;">
+        <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">SUGGESTIONS:</span>
+        <div class="try-this-row" id="try-this-chips-container">
+          <button type="button" class="try-this-chip" data-action="safe-route">🛡️ Safe Route Home</button>
+          <button type="button" class="try-this-chip" data-action="heritage-walk">🛕 Historic Temple Walk</button>
+          <button type="button" class="try-this-chip" data-action="offline-trip">🧭 Offline Compass Trip</button>
+          <button type="button" class="try-this-chip" data-action="cheap-food">🍛 Dhaba Food Under ₹150</button>
+        </div>
+      </div>
+
+      <!-- Vibe & Time Machine Slider -->
+      <div style="display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; border-top: 1px solid var(--border); padding-top: 12px;">
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">VIBE:</span>
+          <button type="button" class="chip-btn vibe-chip active" data-vibe="chill">🌿 Chill</button>
+          <button type="button" class="chip-btn vibe-chip" data-vibe="foodie">🍛 Foodie</button>
+          <button type="button" class="chip-btn vibe-chip" data-vibe="heritage">🏰 Heritage</button>
+          <button type="button" class="chip-btn vibe-chip" data-vibe="budget">🪙 Budget</button>
+          <button type="button" class="chip-btn vibe-chip" data-vibe="nightowl">🌙 Night</button>
+        </div>
+        <div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 4px;">
+            <span>CITY & VILLAGE TIME MACHINE</span>
+            <span id="time-slider-val" style="color:var(--accent);">20:00 (Dusk)</span>
+          </div>
+          <input type="range" id="time-slider" class="custom-range" min="6" max="26" value="20" step="1" aria-label="Time slider from 6 AM to 2 AM" style="width: 100%; accent-color: var(--accent);">
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         MODULE 0: FEATURE HUB (Home Grid & Explore India Showcase)
+         ===================================================================== -->
+    <section id="module-hub" class="module-section active" aria-label="Feature Hub">
+      
+      <!-- Feature Hub Cards Grid -->
+      <div>
+        <h2 style="font-family: var(--font-heading); font-size: 1.4rem; font-weight: 800; margin-bottom: 12px;">
+          What would you like to do?
+        </h2>
+        <div class="feature-hub-grid">
+          <div class="glass-card feature-card" data-jump="discover">
+            <div class="feature-icon-badge">🔍</div>
+            <h3 style="font-size: 1.1rem; font-weight: 800;">Find a Place</h3>
+            <p style="font-size: 0.82rem; color: var(--text-secondary);">Verified places, food stalls, clinics, hotels, and markets with Roamly score.</p>
+          </div>
+          <div class="glass-card feature-card" data-jump="go" style="border-left-color: #38bdf8;">
+            <div class="feature-icon-badge">🚶</div>
+            <h3 style="font-size: 1.1rem; font-weight: 800;">Navigate (Go)</h3>
+            <p style="font-size: 0.82rem; color: var(--text-secondary);">Turn-by-turn landmark directions, voice guidance, and offline compass.</p>
+          </div>
+          <div class="glass-card feature-card" data-jump="safepath" style="border-left-color: var(--safe);">
+            <div class="feature-icon-badge">🛡️</div>
+            <h3 style="font-size: 1.1rem; font-weight: 800;">Safe Route</h3>
+            <p style="font-size: 0.82rem; color: var(--text-secondary);">Compare Fastest vs Safest routes side by side with real risk scores.</p>
+          </div>
+          <div class="glass-card feature-card" data-jump="sos" style="border-left-color: var(--danger);">
+            <div class="feature-icon-badge">🚨</div>
+            <h3 style="font-size: 1.1rem; font-weight: 800;">Nearby Help</h3>
+            <p style="font-size: 0.82rem; color: var(--text-secondary);">One-touch 112 emergency call, nearest police chowki and hospital.</p>
+          </div>
+          <div class="glass-card feature-card" data-jump="timewalk" style="border-left-color: #8b5cf6;">
+            <div class="feature-icon-badge">⏳</div>
+            <h3 style="font-size: 1.1rem; font-weight: 800;">Heritage Walk</h3>
+            <p style="font-size: 0.82rem; color: var(--text-secondary);">Curated 4-6 stop history walks with Wikipedia stories and era timeline.</p>
+          </div>
+          <div class="glass-card feature-card" data-jump="gems" style="border-left-color: #f59e0b;">
+            <div class="feature-icon-badge">💎</div>
+            <h3 style="font-size: 1.1rem; font-weight: 800;">Hidden Gems</h3>
+            <p style="font-size: 0.82rem; color: var(--text-secondary);">Discover offbeat spots, serene temple steps, and authentic local dhabas.</p>
+          </div>
+          <div class="glass-card feature-card" data-jump="faceoff" style="border-left-color: #ec4899;">
+            <div class="feature-icon-badge">⚖️</div>
+            <h3 style="font-size: 1.1rem; font-weight: 800;">Compare Places</h3>
+            <p style="font-size: 0.82rem; color: var(--text-secondary);">Face-Off radar charts on safety, cleanliness, budget, and accessibility.</p>
+          </div>
+          <div class="glass-card feature-card" data-jump="report" style="border-left-color: #14b8a6;">
+            <div class="feature-icon-badge">📢</div>
+            <h3 style="font-size: 1.1rem; font-weight: 800;">Report an Issue</h3>
+            <p style="font-size: 0.82rem; color: var(--text-secondary);">File a community report with voice note waveform, photo, and NLP verification.</p>
+          </div>
+          <div class="glass-card feature-card" data-jump="pulse" style="border-left-color: #06b6d4;">
+            <div class="feature-icon-badge">⛅</div>
+            <h3 style="font-size: 1.1rem; font-weight: 800;">Weather & Alerts</h3>
+            <p style="font-size: 0.82rem; color: var(--text-secondary);">Real-time Open-Meteo temperature, monsoon rain alerts, and air quality.</p>
+          </div>
+          <div class="glass-card feature-card" data-jump="saved" style="border-left-color: #84cc16;">
+            <div class="feature-icon-badge">📌</div>
+            <h3 style="font-size: 1.1rem; font-weight: 800;">Saved Places</h3>
+            <p style="font-size: 0.82rem; color: var(--text-secondary);">1-tap shortcuts to Home, Farm, Clinic, School, or Market on your device.</p>
+          </div>
+          <div class="glass-card feature-card" data-jump="offline" style="border-left-color: #d97706;">
+            <div class="feature-icon-badge">💾</div>
+            <h3 style="font-size: 1.1rem; font-weight: 800;">Offline Trips</h3>
+            <p style="font-size: 0.82rem; color: var(--text-secondary);">Full compass & landmark guidance with zero internet connection.</p>
+          </div>
+          <div class="glass-card feature-card" data-jump="navi" style="border-left-color: #6366f1;">
+            <div class="feature-icon-badge">🤖</div>
+            <h3 style="font-size: 1.1rem; font-weight: 800;">Ask Navi</h3>
+            <p style="font-size: 0.82rem; color: var(--text-secondary);">Natural situation planner: "rainy night, under ₹500, with family".</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Explore India Showcase Grid -->
+      <div style="margin-top: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <div>
+            <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800;">Explore India Hub</h3>
+            <p style="font-size: 0.82rem; color: var(--text-secondary);">Iconic cultural hubs & rural routes pre-configured with real data.</p>
+          </div>
+          <button type="button" id="btn-change-country" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">
+            🌍 Change Country
+          </button>
+        </div>
+
+        <div class="india-showcase-row" id="india-showcase-cards">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         MODULE 1: DISCOVER
+         ===================================================================== -->
+    <section id="module-discover" class="module-section" aria-label="Discover Places">
+      <div class="glass-panel" style="padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;" id="category-filter-group">
+          <button type="button" class="chip-btn cat-filter active" data-cat="all">All Places</button>
+          <button type="button" class="chip-btn cat-filter" data-cat="food">Dhabas & Food</button>
+          <button type="button" class="chip-btn cat-filter" data-cat="attraction">Landmarks</button>
+          <button type="button" class="chip-btn cat-filter" data-cat="hotel">Stays</button>
+          <button type="button" class="chip-btn cat-filter" data-cat="budget">Budget (<₹200)</button>
+          <button type="button" class="chip-btn cat-filter" data-cat="gems">Hidden Gems</button>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center; font-size: 0.85rem;">
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+            <input type="checkbox" id="filter-open-now" checked> Open Now
+          </label>
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+            <input type="checkbox" id="filter-safety-glow" checked> Glow Map
+          </label>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 18px;">
+        <div style="position: relative;">
+          <div id="map-view" role="region" aria-label="Interactive map"></div>
+          <div id="map-svg-fallback" style="display:none; position:absolute; inset:0; background:#0f172a; border-radius:var(--radius-lg); align-items:center; justify-content:center; flex-direction:column; color:#94a3b8; text-align:center; padding:20px;">
+            <span style="font-size:3rem;">🧭</span>
+            <p style="margin-top:10px; font-weight:700;">Vector Map Active</p>
+            <p style="font-size:0.8rem;">Tap Compass Mode to navigate without map tiles.</p>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">
+              Verified Places (<span id="places-count">0</span>)
+            </span>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Ranked by Roamly Score</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr; gap: 12px; max-height: 520px; overflow-y: auto;" id="places-cards-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         MODULE 2: TIME WALK
+         ===================================================================== -->
+    <section id="module-timewalk" class="module-section" aria-label="Time Walk History">
+      <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h2 style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: 800;">Time Walk: Living Heritage</h2>
+            <p style="color: var(--text-secondary); font-size: 0.88rem;">Historical landmarks with Wikipedia narratives, era timeline, and local traditions.</p>
+          </div>
+          <button type="button" id="btn-generate-heritage-walk" class="btn-primary">
+            🏛️ Generate 5-Stop Heritage Walk
+          </button>
+        </div>
+
+        <div id="heritage-walk-box" class="glass-card" style="display: none; padding: 18px; border-left: 4px solid var(--accent);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700;">Curated Walk: "Chronicles of the City"</h3>
+            <span class="badge-pill badge-safe">Est. 2.6 km • 45 min</span>
+          </div>
+          <div id="heritage-walk-stops-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px;" id="heritage-cards-list"></div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         MODULE 3: GO (Navigation, Landmark Turn-by-Turn & SafePath)
+         ===================================================================== -->
+    <section id="module-go" class="module-section" aria-label="Navigation and SafePath">
+      <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; gap: 18px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h2 style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: 800;">Go: Navigation Everywhere</h2>
+            <p style="color: var(--text-secondary); font-size: 0.88rem;">Landmark-based turn-by-turn guidance and offline compass mode for roads, alleys, and dirt tracks.</p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" id="btn-voice-directions-toggle" class="btn-primary" style="font-size: 0.85rem;">
+              🔊 Speak Directions
+            </button>
+          </div>
+        </div>
+
+        <!-- Compass View Box (Shown if Compass Mode is active or offline) -->
+        <div id="compass-mode-box" class="glass-card compass-container" style="display: none;">
+          <h3 style="font-family: var(--font-heading); font-size: 1.2rem; font-weight: 800;">Offline Compass / Beeline Mode</h3>
+          <p style="font-size: 0.82rem; color: var(--text-secondary);">Works in farmlands & tracks with zero internet or map tiles.</p>
+          <canvas id="compass-canvas" width="260" height="260"></canvas>
+          <div style="display: flex; gap: 20px; align-items: center;">
+            <div>
+              <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">DISTANCE</span>
+              <div id="compass-dist-val" style="font-size: 1.6rem; font-weight: 800; color: var(--accent);">340 m</div>
+            </div>
+            <div>
+              <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">EST. STEPS</span>
+              <div id="compass-steps-val" style="font-size: 1.6rem; font-weight: 800; color: var(--safe);">~480 steps</div>
+            </div>
+            <div>
+              <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">TARGET BEARING</span>
+              <div id="compass-bearing-val" style="font-size: 1.6rem; font-weight: 800; color: var(--accent-warm);">42° NE</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Side-by-Side Fastest vs Safest Route Comparison -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="glass-card" style="padding: 16px; border-top: 4px solid #38bdf8; display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; justify-content: space-between;">
+              <span class="badge-pill" style="background: rgba(56,189,248,0.2); color: #38bdf8;">FASTEST ROUTE</span>
+              <span style="font-weight: 800; color: #38bdf8;">12 min • 950m</span>
+            </div>
+            <div style="font-size: 0.85rem; font-weight: 700;">Main Market Shortcut</div>
+            <p style="font-size: 0.82rem; color: var(--text-secondary);">Passes through narrow bazaar alley. Moderate crowd congestion after 19:00.</p>
+            <div class="badge-pill badge-caution" style="align-self: flex-start;">Risk: 22% (Crowded/Narrow)</div>
+          </div>
+
+          <div class="glass-card" style="padding: 16px; border-top: 4px solid var(--safe); display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; justify-content: space-between;">
+              <span class="badge-pill badge-safe">RECOMMENDED • SAFEST ROUTE</span>
+              <span style="font-weight: 800; color: var(--safe);">15 min • 1.2 km</span>
+            </div>
+            <div style="font-size: 0.85rem; font-weight: 700;">Temple Main Road Lightpath</div>
+            <p style="font-size: 0.82rem; color: var(--text-secondary);">100% street lamp illumination, passes Police Chowki & PHC with wide footpath.</p>
+            <div class="badge-pill badge-safe" style="align-self: flex-start;">Risk: 4% (High Safety Confidence)</div>
+          </div>
+        </div>
+
+        <!-- Landmark-Based Step-by-Step Directions Deck -->
+        <div>
+          <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; margin-bottom: 10px;">
+            Turn-by-Turn Landmark Directions
+          </h3>
+          <div style="display: flex; flex-direction: column; gap: 10px;" id="landmark-steps-deck">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Emergency SOS Hub -->
+        <div class="glass-card" style="padding: 18px; border-left: 4px solid var(--danger);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <h3 style="font-family: var(--font-heading); font-size: 1.2rem; font-weight: 800; color: #f87171;">Emergency SOS Numbers (India)</h3>
+              <p style="font-size: 0.82rem; color: var(--text-secondary);">Immediate 1-tap call buttons for police, medical, fire, and safety helplines.</p>
+            </div>
+            <a href="tel:112" class="btn-primary btn-danger" style="text-decoration:none; font-size: 1rem; padding: 12px 20px;">
+              🚨 Dial 112 (National Emergency)
+            </a>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-top: 14px;">
+            <a href="tel:100" class="btn-secondary" style="text-decoration:none; font-size:0.8rem;">👮 100 Police</a>
+            <a href="tel:108" class="btn-secondary" style="text-decoration:none; font-size:0.8rem;">🚑 108 Ambulance</a>
+            <a href="tel:101" class="btn-secondary" style="text-decoration:none; font-size:0.8rem;">🚒 101 Fire</a>
+            <a href="tel:1091" class="btn-secondary" style="text-decoration:none; font-size:0.8rem;">🛡️ 1091 Women Helpline</a>
+            <a href="tel:1098" class="btn-secondary" style="text-decoration:none; font-size:0.8rem;">👶 1098 Childline</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         MODULE 4: FACE-OFF
+         ===================================================================== -->
+    <section id="module-faceoff" class="module-section" aria-label="Place Comparison">
+      <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; gap: 18px;">
+        <h2 style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: 800;">Face-Off: Compare Places Side by Side</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+              <select id="faceoff-select-a" class="form-control" style="padding:8px 12px; background:rgba(0,0,0,0.4); color:#fff; border:1px solid var(--border); border-radius:var(--radius-md);"></select>
+              <select id="faceoff-select-b" class="form-control" style="padding:8px 12px; background:rgba(0,0,0,0.4); color:#fff; border:1px solid var(--border); border-radius:var(--radius-md);"></select>
+            </div>
+            <div class="glass-card" style="padding: 12px;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+                <thead>
+                  <tr style="border-bottom: 1px solid var(--border); color: var(--text-secondary); font-size: 0.78rem;">
+                    <th style="padding:6px; text-align:left;">METRIC</th>
+                    <th style="padding:6px; text-align:left;" id="faceoff-th-a">Place A</th>
+                    <th style="padding:6px; text-align:left;" id="faceoff-th-b">Place B</th>
+                  </tr>
+                </thead>
+                <tbody id="faceoff-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="glass-card" style="padding: 14px; display: flex; align-items: center; justify-content: center;">
+            <canvas id="faceoff-radar-chart" width="340" height="340"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         MODULE 5: PULSE (Weather & Citizen Reports)
+         ===================================================================== -->
+    <section id="module-pulse" class="module-section" aria-label="Pulse Insights">
+      <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; gap: 18px;">
+        <h2 style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: 800;">Pulse: Live Weather & Citizen Reports</h2>
+        
+        <!-- Weather & Environmental Stats -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+          <div class="glass-card" style="padding: 16px;">
+            <span style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">TEMPERATURE</span>
+            <div id="pulse-temp" style="font-size:1.8rem; font-weight:800; font-family:var(--font-heading);">24.2°C</div>
+            <span id="pulse-weather-desc" style="font-size:0.8rem; color:var(--safe);">Mild & Clear</span>
+          </div>
+          <div class="glass-card" style="padding: 16px;">
+            <span style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">AIR QUALITY (AQI)</span>
+            <div id="pulse-aqi" style="font-size:1.8rem; font-weight:800; color:#fbbf24;">112 (Moderate)</div>
+            <span style="font-size:0.8rem; color:var(--text-muted);">PM2.5: 38 µg/m³</span>
+          </div>
+          <div class="glass-card" style="padding: 16px;">
+            <span style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">TRAFFIC CONGESTION</span>
+            <div id="pulse-traffic" style="font-size:1.8rem; font-weight:800; color:var(--safe);">Smooth</div>
+            <span style="font-size:0.8rem; color:var(--text-muted);">Average Speed: 32 km/h</span>
+          </div>
+          <div class="glass-card" style="padding: 16px;">
+            <span style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">COMMUNITY SIGNALS</span>
+            <div id="pulse-reports-count" style="font-size:1.8rem; font-weight:800; color:var(--accent);">12 Verified</div>
+            <span style="font-size:0.8rem; color:var(--text-muted);">Trust Index: 94%</span>
+          </div>
+        </div>
+
+        <!-- Citizen Report Form & Feed -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="glass-card" style="padding: 16px;">
+            <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 10px;">Submit Field Report</h3>
+            <form id="citizen-report-form" style="display: flex; flex-direction: column; gap: 10px;">
+              <select id="report-category" style="padding:8px 12px; background:rgba(0,0,0,0.4); color:#fff; border:1px solid var(--border); border-radius:var(--radius-md);">
+                <option value="lighting">💡 Dark Street / Broken Lamp</option>
+                <option value="cleanliness">🧹 Garbage / Cleanliness</option>
+                <option value="hazard">⚠️ Pothole / Road Broken</option>
+                <option value="harassment">🛡️ Safety / Harassment Concern</option>
+                <option value="water">💧 Water Tap Working / Leaking</option>
+                <option value="praise">✨ Peaceful / Safe Gem</option>
+              </select>
+              <textarea id="report-description" rows="3" placeholder="Describe the condition, nearest landmark, and time..." style="padding:10px; background:rgba(0,0,0,0.4); color:#fff; border:1px solid var(--border); border-radius:var(--radius-md); font-family:var(--font-body); font-size:0.88rem;" required></textarea>
+              <div id="nlp-live-feedback" style="font-size:0.75rem; color:var(--accent);">NLP Ready: Type report description...</div>
+              
+              <div style="display: flex; gap: 8px;">
+                <button type="button" id="btn-record-voice" class="btn-secondary" style="flex:1; font-size:0.8rem;">🎙️ Voice Note</button>
+                <button type="button" id="btn-stop-voice" class="btn-secondary" style="display:none; flex:1; font-size:0.8rem; color:var(--danger);">⏹️ Stop Recording</button>
+              </div>
+              <canvas id="waveform-canvas"></canvas>
+              
+              <button type="submit" class="btn-primary" style="margin-top: 4px;">📢 Submit Verified Report</button>
+            </form>
+          </div>
+
+          <div>
+            <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 10px;">Community Reports Feed</h3>
+            <div style="display: flex; flex-direction: column; gap: 10px; max-height: 420px; overflow-y: auto;" id="reports-feed-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         MODULE 6: NAVI AI
+         ===================================================================== -->
+    <section id="module-navi" class="module-section" aria-label="Navi AI Assistant">
+      <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h2 style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: 800;">Navi: AI Decision Engine</h2>
+            <p style="color: var(--text-secondary); font-size: 0.88rem;">State your situation to receive ONE verified, budget-checked, weather-aware plan.</p>
+          </div>
+          <button type="button" id="btn-voice-navi-listen" class="btn-secondary" style="font-size: 0.85rem;">
+            🎙️ Speak Query
+          </button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 340px 1fr; gap: 16px;">
+          <div class="glass-card" style="padding: 14px; display: flex; flex-direction: column; gap: 10px; height: 500px;">
+            <div style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;" id="navi-messages-box">
+              <div style="padding: 10px 14px; background: rgba(255,255,255,0.08); border-radius: 14px; font-size: 0.86rem; border-bottom-left-radius: 4px;">
+                Namaste! I am <strong>Navi</strong>. Tell me your situation (e.g. <em>"rainy night, under ₹500, with family, want local food and something historic"</em> or <em>"how do I reach the clinic from my field?"</em>) and I will plan ONE complete route!
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none;">
+              <button type="button" class="chip-btn prompt-chip" data-prompt="rainy night, under 500 rupees, with family, want local food and something historic">🌧️ Rainy & Family (₹500)</button>
+              <button type="button" class="chip-btn prompt-chip" data-prompt="solo traveler, sunset walk, safe photography spots, tea stall">🌅 Sunset & Tea</button>
+              <button type="button" class="chip-btn prompt-chip" data-prompt="how do I reach the nearest clinic from the field safely">🌾 Field to Clinic</button>
+            </div>
+
+            <form id="navi-chat-form" style="display: flex; gap: 8px;">
+              <input type="text" id="navi-text-input" class="form-control" placeholder="Describe situation..." style="flex: 1; padding: 10px 14px; background: rgba(0,0,0,0.4); color: #fff; border: 1px solid var(--border); border-radius: var(--radius-full); font-size: 0.88rem;" required>
+              <button type="submit" class="btn-primary" style="padding: 10px 16px;">➤</button>
+            </form>
+          </div>
+
+          <div class="glass-card" style="padding: 18px; display: flex; flex-direction: column; gap: 12px;" id="navi-plan-output-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span class="badge-pill badge-safe">OPTIMAL DECISION PLAN</span>
+              <div style="display: flex; gap: 6px;">
+                <button type="button" id="btn-read-plan-tts" class="btn-secondary" style="font-size:0.8rem; padding:6px 12px;">🔊 Listen</button>
+                <button type="button" id="btn-apply-plan-to-map" class="btn-primary" style="font-size:0.8rem; padding:6px 12px;">🗺️ Apply to Map</button>
+              </div>
+            </div>
+
+            <h3 id="plan-title" style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800;">
+              Evening Chandni Chowk Historic Food Walk
+            </h3>
+
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <span class="badge-pill" style="background: rgba(255,255,255,0.08);" id="plan-duration-badge">⏱️ 2h 10m</span>
+              <span class="badge-pill" style="background: rgba(255,255,255,0.08);" id="plan-cost-badge">🪙 ~₹350 total</span>
+              <span class="badge-pill badge-safe" id="plan-safety-badge">🛡️ Safety: 91/100</span>
+              <span class="badge-pill" style="background: rgba(56,189,248,0.15); color: #38bdf8;" id="plan-weather-badge">☂️ Covered Bazaars</span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8px;" id="plan-stops-container"></div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--text-secondary);">
+              <div>
+                <strong style="color: #fff;">Weather Note:</strong>
+                <p id="plan-weather-advice">Dry evening; light jacket recommended after 21:00.</p>
+              </div>
+              <div>
+                <strong style="color: #fff;">Contingency Backup:</strong>
+                <p id="plan-backup-advice">If paratha stall has long queue, divert 80m south to historic jalebi shop.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         MODULE 7: PASSPORT
+         ===================================================================== -->
+    <section id="module-passport" class="module-section" aria-label="Roamly Passport">
+      <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h2 style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: 800;">Roamly Passport: Collectible Atlas</h2>
+            <p style="color: var(--text-secondary); font-size: 0.88rem;">Earn unique SVG stamps for exploring places, walking heritage trails, and reporting local observations.</p>
+          </div>
+          <button type="button" id="btn-share-week-card" class="btn-primary">
+            📤 Share "My Roamly Week" Card
+          </button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 14px;" id="passport-stamps-grid"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- =====================================================================
+       FLOATING RADIAL MENU & EMERGENCY SOS
+       ===================================================================== -->
+  <button type="button" class="floating-sos-btn" id="btn-floating-sos" title="Emergency SOS" aria-label="Emergency SOS">
+    🚨
+  </button>
+
+  <div class="radial-menu-items" id="radial-menu-container">
+    <button type="button" class="radial-sub-btn radial-sub-1" data-act="search" title="Search Place">🔍</button>
+    <button type="button" class="radial-sub-btn radial-sub-2" data-act="gps" title="My GPS">📍</button>
+    <button type="button" class="radial-sub-btn radial-sub-3" data-act="navigate" title="Navigate (Go)">🚶</button>
+    <button type="button" class="radial-sub-btn radial-sub-4" data-act="sos" title="SOS Help">🚨</button>
+    <button type="button" class="radial-sub-btn radial-sub-5" data-act="navi" title="Ask Navi">🤖</button>
+  </div>
+  <button type="button" class="radial-hub-btn" id="btn-radial-hub" title="Quick Actions Radial" aria-label="Open radial menu">
+    ⚡
+  </button>
+
+  <!-- =====================================================================
+       COMMAND PALETTE MODAL (Ctrl+K or /)
+       ===================================================================== -->
+  <div id="modal-cmd-palette" role="dialog" aria-modal="true" aria-label="Command Palette">
+    <div class="cmd-palette-box glass-panel">
+      <input type="text" id="cmd-palette-input" class="cmd-palette-input" placeholder="Type a command or feature (e.g. 'hospital', 'compass', 'hindi', 'safe route')..." aria-label="Command palette input">
+      <div class="cmd-results-list" id="cmd-results-list"></div>
+    </div>
+  </div>
+
+  <!-- SAVED PLACES MODAL -->
+  <div id="modal-saved-places" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Saved Places">
+    <div class="glass-panel modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800;">Saved Places (Device Storage)</h3>
+        <button type="button" class="btn-icon btn-close-modal">✕</button>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px;" id="saved-places-list-container"></div>
+    </div>
+  </div>
+
+  <!-- TRUTH LENS MODAL -->
+  <div id="modal-truth-lens" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Truth Lens">
+    <div class="glass-panel modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800;">🔍 Truth Lens: Score Calculation</h3>
+        <button type="button" class="btn-icon btn-close-modal">✕</button>
+      </div>
+      <div id="truth-lens-body" style="font-size: 0.88rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 10px;"></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div id="modal-settings" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Settings">
+    <div class="glass-panel modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800;">Roamly Preferences</h3>
+        <button type="button" class="btn-icon btn-close-modal">✕</button>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div>
+          <label style="font-size:0.8rem; font-weight:700; color:var(--text-secondary);">Language / भाषा</label>
+          <select id="settings-lang-select" style="width:100%; padding:10px; background:rgba(0,0,0,0.4); color:#fff; border:1px solid var(--border); border-radius:var(--radius-md); margin-top:4px;">
+            <option value="en">English</option>
+            <option value="hi">हिन्दी (Hindi)</option>
+            <option value="mr">मराठी (Marathi)</option>
+            <option value="ta">தமிழ் (Tamil)</option>
+            <option value="te">తెలుగు (Telugu)</option>
+            <option value="bn">বাংলা (Bengali)</option>
+            <option value="gu">ગુજરાતી (Gujarati)</option>
+            <option value="kn">ಕನ್ನಡ (Kannada)</option>
+            <option value="ml">മലയാളം (Malayalam)</option>
+            <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:0.8rem; font-weight:700; color:var(--text-secondary);">Theme Scene</label>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top:4px;">
+            <button type="button" class="btn-secondary theme-btn" data-theme="dusk">🌆 Dusk</button>
+            <button type="button" class="btn-secondary theme-btn" data-theme="neon">⚡ Neon</button>
+            <button type="button" class="btn-secondary theme-btn" data-theme="morning">🗺️ Atlas</button>
+            <button type="button" class="btn-secondary theme-btn" data-theme="monsoon">🌧️ Monsoon</button>
+            <button type="button" class="btn-secondary theme-btn" data-theme="heritage">🏛️ Heritage</button>
+          </div>
+        </div>
+
+        <div style="border-top:1px solid var(--border); padding-top:10px; display:flex; justify-content:space-between;">
+          <button type="button" id="btn-replay-intro" class="btn-secondary" style="font-size:0.8rem;">🎬 Replay Intro</button>
+          <button type="button" class="btn-primary btn-close-modal">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" style="position: fixed; top: 70px; right: 20px; z-index: 10005; display: flex; flex-direction: column; gap: 8px; pointer-events: none;"></div>
+
+  <!-- =====================================================================
+       ROAMLY JAVASCRIPT APPLICATION CORE (India-First & Everywhere Navigation)
+       ===================================================================== -->
+  <script>
+    'use strict';
+
+    /* ===================================================================
+       1. PURE JAVASCRIPT PLUS CODE (OPEN LOCATION CODE) ENCODER/DECODER
+       =================================================================== */
+    const PlusCode = {
+      ALPHABET: '23456789CFGHJMPQRVWX',
+      encode(latitude, longitude) {
+        latitude = Math.min(Math.max(latitude, -90), 90);
+        while (longitude < -180) longitude += 360;
+        while (longitude >= 180) longitude -= 360;
+        if (latitude === 90) latitude -= 1e-7;
+
+        let latRemain = latitude + 90;
+        let lngRemain = longitude + 180;
+        const resolutions = [20, 1, 0.05, 0.0025];
+        let code = '';
+        for (let i = 0; i < 4; i++) {
+          const res = resolutions[i];
+          const dlat = Math.floor(latRemain / res);
+          const dlng = Math.floor(lngRemain / res);
+          code += this.ALPHABET[Math.min(19, Math.max(0, dlat))];
+          code += this.ALPHABET[Math.min(19, Math.max(0, dlng))];
+          latRemain -= dlat * res;
+          lngRemain -= dlng * res;
+        }
+        code += '+';
+        const dlat5 = Math.floor(Math.min(19, Math.max(0, latRemain / 0.000125)));
+        const dlng5 = Math.floor(Math.min(19, Math.max(0, lngRemain / 0.000125)));
+        code += this.ALPHABET[dlat5] + this.ALPHABET[dlng5];
+        return code;
+      },
+      decode(code) {
+        const clean = code.replace('+', '').toUpperCase();
+        if (clean.length < 8) return null;
+        const resolutions = [20, 1, 0.05, 0.0025];
+        let lat = -90.0;
+        let lng = -180.0;
+        for (let i = 0; i < 4; i++) {
+          const dlat = this.ALPHABET.indexOf(clean[i * 2]);
+          const dlng = this.ALPHABET.indexOf(clean[i * 2 + 1]);
+          if (dlat === -1 || dlng === -1) return null;
+          lat += dlat * resolutions[i];
+          lng += dlng * resolutions[i];
+        }
+        if (clean.length >= 10) {
+          const dlat5 = this.ALPHABET.indexOf(clean[8]);
+          const dlng5 = this.ALPHABET.indexOf(clean[9]);
+          if (dlat5 !== -1 && dlng5 !== -1) {
+            lat += dlat5 * 0.000125;
+            lng += dlng5 * 0.000125;
+          }
+        }
+        return { lat: lat + 0.0000625, lng: lng + 0.0000625 };
+      }
+    };
+
+    /* ===================================================================
+       2. MULTI-LANGUAGE DICTIONARY (10 Indian & Global Languages)
+       =================================================================== */
+    const I18N = {
+      en: { tagline: 'Know it. Walk it. Love it.', hub: 'Feature Hub', discover: 'Discover', timewalk: 'Time Walk', go: 'Go / Navigate', faceoff: 'Face-Off', pulse: 'Pulse', navi: 'Navi AI', passport: 'Passport' },
+      hi: { tagline: 'जानें। चलें। प्यार करें।', hub: 'सुविधा केंद्र', discover: 'खोजें', timewalk: 'इतिहास यात्रा', go: 'रास्ता / नेविगेट', faceoff: 'तुलना करें', pulse: 'शहर का हाल', navi: 'नवी एआई', passport: 'पासपोर्ट' },
+      mr: { tagline: 'जाणा. चाला. प्रेम करा.', hub: 'वैशिष्ट्ये', discover: 'शोधा', timewalk: 'इतिहास वॉक', go: 'मार्ग / नेव्हिगेट', faceoff: 'तुलना करा', pulse: 'शहर स्पंदन', navi: 'नवी एआय', passport: 'पासपोर्ट' },
+      ta: { tagline: 'அறிந்திடுங்கள். நடந்திடுங்கள். நேசியுங்கள்.', hub: 'செயலி மையம்', discover: 'கண்டறிய', timewalk: 'வரலாற்றுப் பயணம்', go: 'வழிகாட்டி', faceoff: 'ஒப்பீடு', pulse: 'நகர துடிப்பு', navi: 'நவி ஏஐ', passport: 'பாஸ்போர்ட்' },
+      te: { tagline: 'తెలుసుకోండి. నడవండి. ప్రేమించండి.', hub: 'ఫీచర్ హబ్', discover: 'అన్వేషించండి', timewalk: 'చరిత్ర నడక', go: 'దారి / నావిగేట్', faceoff: 'పోలిక', pulse: 'నగర పల్స్', navi: 'నవీ ఏఐ', passport: 'పాస్‌పోర్ట్' },
+      bn: { tagline: 'জানুন। হাঁটুন। ভালোবাসুন।', hub: 'ফিচার হাব', discover: 'আবিষ্কার করুন', timewalk: 'ঐতিহাসিক হাঁটা', go: 'পথ / নেভিগেট', faceoff: 'তুলনা করুন', pulse: 'শহরের স্পন্দন', navi: 'নভি এআই', passport: 'পাসপোর্ট' },
+      gu: { tagline: 'જાણો. ચાલો. પ્રેમ કરો.', hub: 'સુવિધા હબ', discover: 'શોધો', timewalk: 'ઇતિહાસ સફર', go: 'માર્ગ / નેવિગેટ', faceoff: 'સરખામણી', pulse: 'શહેર સ્પંદન', navi: 'નવી એઆઈ', passport: 'પાસપોર્ટ' },
+      kn: { tagline: 'ತಿಳಿಯಿರಿ. ನಡೆಯಿರಿ. ಪ್ರೀತಿಸಿ.', hub: 'ವೈಶಿಷ್ಟ್ಯ ಹಬ್', discover: 'ಅನ್ವೇಷಿಸಿ', timewalk: 'ಇತಿಹಾಸ ನಡಿಗೆ', go: 'ದಾರಿ / ನ್ಯಾವಿಗೇಟ್', faceoff: 'ಹೋಲಿಕೆ', pulse: 'ನಗರದ ಮಿಡಿತ', navi: 'ನವಿ ಎಐ', passport: 'ಪಾಸ್‌ಪೋರ್ಟ್' },
+      ml: { tagline: 'അറിയുക. നടക്കുക. സ്നേഹിക്കുക.', hub: 'സവിശേഷതകൾ', discover: 'കണ്ടെത്തുക', timewalk: 'ചരിത്ര വഴി', go: 'വഴി / നാവിഗേറ്റ്', faceoff: 'താരതമ്യം', pulse: 'നഗര സ്പന്ദനം', navi: 'നവി എഐ', passport: 'പാസ്‌പോർട്ട്' },
+      pa: { tagline: 'ਜਾਣੋ। ਤੁਰੋ। ਪਿਆਰ ਕਰੋ।', hub: 'ਸੁਵਿਧਾ ਹੱਬ', discover: 'ਖੋਜੋ', timewalk: 'ਇਤਿਹਾਸਕ ਯਾਤਰਾ', go: 'ਰਾਹ / ਨੇਵੀਗੇਟ', faceoff: 'ਤੁਲਨਾ', pulse: 'ਸ਼ਹਿਰ ਦੀ ਨਬਜ਼', navi: 'ਨਵੀ ਏਆਈ', passport: 'ਪਾਸਪੋਰਟ' }
+    };
+
+    /* ===================================================================
+       3. STORAGE & STATE ENGINE
+       =================================================================== */
+    const RoamlyStorage = {
+      get(k, fallback) {
+        try { const v = localStorage.getItem(`roamly_${k}`); return v ? JSON.parse(v) : fallback; }
+        catch (e) { return fallback; }
+      },
+      set(k, v) {
+        try { localStorage.setItem(`roamly_${k}`, JSON.stringify(v)); } catch (e) {}
+      }
+    };
+
+    const appState = {
+      city: 'Delhi',
+      country: 'India',
+      lat: 28.6139,
+      lng: 77.2090,
+      currency: 'INR',
+      locale: 'en-IN',
+      lang: 'en',
+      theme: 'dusk',
+      timeHour: 20,
+      currentVibe: 'chill',
+      activeModule: 'hub',
+      soundEnabled: false,
+      volume: 0.5,
+      animationsEnabled: true,
+      compassActive: false,
+      heading: 0,
+      targetBearing: 42,
+      targetDistMeters: 340,
+      places: [],
+      filteredPlaces: [],
+      heritageSites: [],
+      citizenReports: [],
+      unlockedStamps: new Set(['welcome', 'india_explorer']),
+      savedPlaces: [
+        { id: 'home', label: 'Home (घर)', lat: 28.6139, lng: 77.2090, plusCode: '7JWVJ67H+5R' },
+        { id: 'farm', label: 'Farm / Field (खेत)', lat: 28.6250, lng: 77.2150, plusCode: '7JWVJ6GF+X4' },
+        { id: 'clinic', label: 'Clinic / PHC (अस्पताल)', lat: 28.6180, lng: 77.2120, plusCode: '7JWVJ696+94' },
+        { id: 'market', label: 'Market / Mandi (बाज़ार)', lat: 28.6507, lng: 77.2334, plusCode: '7JWVP62M+79' }
+      ],
+      weather: { temp: 24.2, desc: 'Clear Evening', aqi: 112, wind: 8 },
+      leafletMap: null,
+      leafletMarkersLayer: null,
+      leafletGlowLayer: null,
+      radarChartInstance: null,
+      mediaRecorder: null,
+      recordedAudioUrl: null
+    };
+
+    /* Built-in rich dataset for Delhi & India Hub */
+    const INDIA_SEED_PLACES = [
+      {
+        id: 'in1',
+        name: 'Red Fort (लाल किला) & Meena Bazaar',
+        category: 'historic',
+        lat: 28.6562,
+        lng: 28.6562,
+        lng: 77.2410,
+        roamlyScore: 97,
+        safetyIndex: 94,
+        cleanliness: 88,
+        accessibility: 85,
+        priceTier: '₹₹',
+        priceVal: 150,
+        openHour: 7,
+        closeHour: 21,
+        desc: 'Historic Mughal fort complex of red sandstone along the Yamuna bank.',
+        wiki: 'The Red Fort is a historic fort in Old Delhi that served as the main residence of Mughal Emperors.',
+        era: 'medieval',
+        tags: ['heritage=yes', 'illuminated=yes', 'police_post=yes']
+      },
+      {
+        id: 'in2',
+        name: 'Chandni Chowk & Gali Paranthe Wali',
+        category: 'food',
+        lat: 28.6559,
+        lng: 77.2307,
+        roamlyScore: 94,
+        safetyIndex: 88,
+        cleanliness: 82,
+        accessibility: 80,
+        priceTier: '₹',
+        priceVal: 120,
+        openHour: 8,
+        closeHour: 23,
+        desc: 'Iconic street food street serving stuffed tawa parathas, rabri, and hot chai.',
+        wiki: 'Gali Paranthe Wali is a famous culinary lane in Chandni Chowk dating back to 1870.',
+        era: 'modern',
+        tags: ['food=yes', 'famous=yes']
+      },
+      {
+        id: 'in3',
+        name: 'Gurudwara Bangla Sahib & Sarovar',
+        category: 'temple',
+        lat: 28.6264,
+        lng: 77.2090,
+        roamlyScore: 98,
+        safetyIndex: 99,
+        cleanliness: 98,
+        accessibility: 95,
+        priceTier: '₹',
+        priceVal: 0,
+        openHour: 0,
+        closeHour: 24,
+        desc: 'Prominent Sikh shrine with holy water pool, round-the-clock langar, and peaceful atmosphere.',
+        wiki: 'Gurudwara Bangla Sahib is associated with the eighth Sikh Guru, Guru Har Krishan.',
+        era: 'medieval',
+        tags: ['temple=yes', 'free_food=yes', 'water=yes']
+      },
+      {
+        id: 'in4',
+        name: 'Lodhi Gardens Shaded Heritage Trail',
+        category: 'chill',
+        lat: 28.5931,
+        lng: 77.2197,
+        roamlyScore: 96,
+        safetyIndex: 95,
+        cleanliness: 94,
+        accessibility: 90,
+        priceTier: '₹',
+        priceVal: 0,
+        openHour: 6,
+        closeHour: 20,
+        desc: 'Lush green park housing architectural tombs of the Sayyid and Lodhi dynasties.',
+        wiki: 'Lodhi Gardens is a city park situated in New Delhi with architectural structures of 15th century.',
+        era: 'medieval',
+        tags: ['park=yes', 'walking=yes']
+      },
+      {
+        id: 'in5',
+        name: 'AIIMS & Safdarjung Emergency Hospital',
+        category: 'hospital',
+        lat: 28.5672,
+        lng: 77.2100,
+        roamlyScore: 95,
+        safetyIndex: 98,
+        cleanliness: 92,
+        accessibility: 100,
+        priceTier: '₹',
+        priceVal: 0,
+        openHour: 0,
+        closeHour: 24,
+        desc: 'Premier government public health hospital with 24/7 trauma & emergency center.',
+        wiki: 'All India Institute of Medical Sciences is India's top medical research public university.',
+        era: 'modern',
+        tags: ['hospital=yes', 'emergency=yes']
+      },
+      {
+        id: 'in6',
+        name: 'Parliament Street Police Headquarters',
+        category: 'police',
+        lat: 28.6225,
+        lng: 77.2140,
+        roamlyScore: 92,
+        safetyIndex: 99,
+        cleanliness: 90,
+        accessibility: 95,
+        priceTier: '₹',
+        priceVal: 0,
+        openHour: 0,
+        closeHour: 24,
+        desc: '24/7 active police station with women helpdesk and PCR dispatch.',
+        wiki: 'Delhi Police central station on Parliament Street.',
+        era: 'modern',
+        tags: ['police=yes', 'emergency=yes']
+      }
+    ];
+
+    /* 11 Explore India Hub Cards */
+    const EXPLORE_INDIA_DESTINATIONS = [
+      { name: 'Delhi', state: 'National Capital', icon: '🏛️', lat: 28.6139, lng: 77.2090, desc: 'Red Fort, Chandni Chowk street food, Humayun Tomb' },
+      { name: 'Mumbai', state: 'Maharashtra', icon: '🌊', lat: 19.0760, lng: 72.8777, desc: 'Gateway of India, Marine Drive queens necklace, local trains' },
+      { name: 'Jaipur', state: 'Rajasthan', icon: '🏰', lat: 26.9124, lng: 75.7873, desc: 'Hawa Mahal, Amber Fort, vibrant Johari Bazaar' },
+      { name: 'Varanasi', state: 'Uttar Pradesh', icon: '🛕', lat: 25.3176, lng: 82.9739, desc: 'Ancient Ganga Ghats, Kashi Vishwanath, evening Aarti' },
+      { name: 'Agra', state: 'Uttar Pradesh', icon: '🕌', lat: 27.1767, lng: 78.0081, desc: 'Taj Mahal, Agra Fort, Mehtab Bagh marble views' },
+      { name: 'Goa', state: 'Coastal India', icon: '🌴', lat: 15.2993, lng: 74.1240, desc: 'Old Goa Latin quarters, Basilica of Bom Jesus, coastal paths' },
+      { name: 'Kolkata', state: 'West Bengal', icon: '🚋', lat: 22.5726, lng: 88.3639, desc: 'Howrah Bridge, Victoria Memorial, Dakshineswar Kali Temple' },
+      { name: 'Hampi', state: 'Karnataka', icon: '🗿', lat: 15.3350, lng: 76.4600, desc: 'Vijayanagara boulder ruins, Stone Chariot, Virupaksha' },
+      { name: 'Kerala Backwaters', state: 'Kerala', icon: '🛶', lat: 9.4981, lng: 76.3388, desc: 'Alleppey houseboats, Vembanad lake, toddy shops' },
+      { name: 'Leh-Ladakh', state: 'Himalayas', icon: '🏔️', lat: 34.1526, lng: 77.5771, desc: 'Pangong Tso lake, Thiksey monastery, high passes' },
+      { name: 'Village Explorer', state: 'Rural India', icon: '🌾', lat: 28.7041, lng: 77.1025, desc: 'Panchayat bhavan, tube wells, earthen paths, cattle tracks' }
+    ];
+
+    /* Pre-seeded citizen reports */
+    const SEED_CITIZEN_REPORTS = [
+      {
+        id: 'rep-in-1',
+        category: 'lighting',
+        desc: 'New LED solar streetlights operational along temple road chowk. Safe and busy.',
+        lat: 28.6250,
+        lng: 77.2100,
+        timestamp: Date.now() - 3600000 * 2,
+        trustScore: 92,
+        status: 'Verified',
+        sentiment: 0.8,
+        upvotes: 19,
+        evidence: ['Corroborated by 3 villagers', 'GPS timestamp matched', 'Positive sentiment']
+      },
+      {
+        id: 'rep-in-2',
+        category: 'water',
+        desc: 'Public RO drinking water station near bus stand is fully working and cold.',
+        lat: 28.6500,
+        lng: 77.2300,
+        timestamp: Date.now() - 3600000 * 6,
+        trustScore: 89,
+        status: 'Verified',
+        sentiment: 0.9,
+        upvotes: 14,
+        evidence: ['Confirmed sanitation audit']
+      },
+      {
+        id: 'rep-in-3',
+        category: 'hazard',
+        desc: 'Pothole on left turn after railway crossing. Two-wheelers drive slow.',
+        lat: 28.6600,
+        lng: 77.2400,
+        timestamp: Date.now() - 3600000 * 10,
+        trustScore: 72,
+        status: 'Unverified',
+        sentiment: -0.5,
+        upvotes: 5,
+        evidence: ['Single reporter verification']
+      }
+    ];
+
+    /* ===================================================================
+       4. WEB AUDIO SYNTHESIZER
+       =================================================================== */
+    let audioCtx = null;
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) audioCtx = new AudioContextClass();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playSound(type) {
+      if (!appState.soundEnabled) return;
+      try {
+        initAudio();
+        if (!audioCtx) return;
+        const now = audioCtx.currentTime;
+        const masterGain = audioCtx.createGain();
+        masterGain.gain.setValueAtTime(appState.volume * 0.3, now);
+        masterGain.connect(audioCtx.destination);
+
+        if (type === 'whoosh') {
+          const bufferSize = audioCtx.sampleRate * 0.2;
+          const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+          const output = noiseBuffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+          const noise = audioCtx.createBufferSource();
+          noise.buffer = noiseBuffer;
+          const filter = audioCtx.createBiquadFilter();
+          filter.type = 'bandpass';
+          filter.frequency.setValueAtTime(500, now);
+          filter.frequency.exponentialRampToValueAtTime(2200, now + 0.18);
+          noise.connect(filter);
+          filter.connect(masterGain);
+          noise.start(now);
+          noise.stop(now + 0.2);
+        } else if (type === 'pop') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(600, now);
+          osc.frequency.exponentialRampToValueAtTime(1200, now + 0.07);
+          gain.gain.setValueAtTime(0.4, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+          osc.connect(gain);
+          gain.connect(masterGain);
+          osc.start(now);
+          osc.stop(now + 0.08);
+        } else if (type === 'chime') {
+          [523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.value = freq;
+            const t = now + idx * 0.06;
+            gain.gain.setValueAtTime(0.3, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+            osc.connect(gain);
+            gain.connect(masterGain);
+            osc.start(t);
+            osc.stop(t + 0.38);
+          });
+        } else if (type === 'safe') {
+          [440, 554.37, 659.25].forEach(freq => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+            osc.connect(gain);
+            gain.connect(masterGain);
+            osc.start(now);
+            osc.stop(now + 0.48);
+          });
+        }
+      } catch (e) {}
+    }
+
+    /* ===================================================================
+       5. 60FPS PROCEDURAL CANVAS BACKGROUND (5 Themes)
+       =================================================================== */
+    const bgCanvas = document.getElementById('bg-canvas');
+    const bgCtx = bgCanvas.getContext('2d');
+    let bgParticles = [];
+
+    function resizeBgCanvas() {
+      bgCanvas.width = window.innerWidth;
+      bgCanvas.height = window.innerHeight;
+      initBgParticles();
+    }
+    window.addEventListener('resize', resizeBgCanvas);
+
+    function initBgParticles() {
+      bgParticles = [];
+      const count = window.innerWidth < 640 ? 30 : 65;
+      for (let i = 0; i < count; i++) {
+        bgParticles.push({
+          x: Math.random() * bgCanvas.width,
+          y: Math.random() * bgCanvas.height,
+          radius: Math.random() * 2.2 + 1,
+          vx: (Math.random() - 0.5) * 0.5,
+          vy: (Math.random() - 0.5) * 0.5,
+          alpha: Math.random() * 0.7 + 0.2,
+          pulse: Math.random() * 0.02 + 0.01
+        });
+      }
+    }
+
+    function renderBgScene() {
+      if (!appState.animationsEnabled || document.hidden) {
+        requestAnimationFrame(renderBgScene);
+        return;
+      }
+      const w = bgCanvas.width;
+      const h = bgCanvas.height;
+      bgCtx.clearRect(0, 0, w, h);
+
+      const theme = appState.theme;
+      const timeFactor = (appState.timeHour - 6) / 20;
+
+      if (theme === 'dusk') {
+        const skyGrad = bgCtx.createLinearGradient(0, 0, 0, h);
+        skyGrad.addColorStop(0, timeFactor > 0.6 ? '#090d16' : '#1e1b4b');
+        skyGrad.addColorStop(0.6, timeFactor > 0.6 ? '#1e1b4b' : '#312e81');
+        skyGrad.addColorStop(1, timeFactor > 0.6 ? '#3b1d28' : '#78350f');
+        bgCtx.fillStyle = skyGrad;
+        bgCtx.fillRect(0, 0, w, h);
+
+        bgCtx.fillStyle = 'rgba(10, 15, 26, 0.65)';
+        for (let bx = 0; bx < w; bx += 60) {
+          const bHeight = 110 + Math.sin(bx * 0.05) * 35;
+          bgCtx.fillRect(bx, h - bHeight, 54, bHeight);
+        }
+
+        bgParticles.forEach(p => {
+          p.x += p.vx; p.y += p.vy;
+          if (p.x < 0) p.x = w; if (p.x > w) p.x = 0;
+          if (p.y < 0) p.y = h; if (p.y > h) p.y = 0;
+          p.alpha += p.pulse;
+          if (p.alpha > 0.85 || p.alpha < 0.2) p.pulse = -p.pulse;
+          bgCtx.beginPath();
+          bgCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          bgCtx.fillStyle = `rgba(245, 158, 11, ${p.alpha})`;
+          bgCtx.fill();
+        });
+      } else if (theme === 'neon') {
+        bgCtx.fillStyle = '#05050b';
+        bgCtx.fillRect(0, 0, w, h);
+        bgCtx.strokeStyle = 'rgba(236, 72, 153, 0.15)';
+        for (let x = 0; x < w; x += 60) {
+          bgCtx.beginPath(); bgCtx.moveTo(x, 0); bgCtx.lineTo(x, h); bgCtx.stroke();
+        }
+      } else if (theme === 'morning') {
+        bgCtx.fillStyle = '#151d28';
+        bgCtx.fillRect(0, 0, w, h);
+      } else if (theme === 'monsoon') {
+        bgCtx.fillStyle = '#0b131e';
+        bgCtx.fillRect(0, 0, w, h);
+        bgCtx.strokeStyle = 'rgba(56, 189, 248, 0.3)';
+        bgParticles.forEach(p => {
+          p.y += 10;
+          if (p.y > h) p.y = 0;
+          bgCtx.beginPath(); bgCtx.moveTo(p.x, p.y); bgCtx.lineTo(p.x - 2, p.y + 14); bgCtx.stroke();
+        });
+      } else if (theme === 'heritage') {
+        bgCtx.fillStyle = '#14100c';
+        bgCtx.fillRect(0, 0, w, h);
+      }
+      requestAnimationFrame(renderBgScene);
+    }
+
+    /* ===================================================================
+       6. CINEMATIC 3D ROTATING GLOBE INTRO
+       =================================================================== */
+    const globeCanvas = document.getElementById('globe-canvas');
+    const globeCtx = globeCanvas.getContext('2d');
+    let globeAngle = 0;
+    let globeActive = true;
+
+    function renderGlobe() {
+      if (!globeActive) return;
+      const cx = 125, cy = 125, radius = 95;
+      globeCtx.clearRect(0, 0, 250, 250);
+
+      const grad = globeCtx.createRadialGradient(cx - 25, cy - 25, 10, cx, cy, radius);
+      grad.addColorStop(0, '#1e293b');
+      grad.addColorStop(0.7, '#0f172a');
+      grad.addColorStop(1, '#020617');
+      globeCtx.fillStyle = grad;
+      globeCtx.beginPath();
+      globeCtx.arc(cx, cy, radius, 0, Math.PI * 2);
+      globeCtx.fill();
+
+      globeAngle += 0.015;
+      globeCtx.strokeStyle = 'rgba(45, 212, 191, 0.25)';
+      globeCtx.lineWidth = 1;
+
+      for (let lat = -60; lat <= 60; lat += 30) {
+        const y = cy + Math.sin((lat * Math.PI) / 180) * radius;
+        const rLat = Math.cos((lat * Math.PI) / 180) * radius;
+        globeCtx.beginPath();
+        globeCtx.ellipse(cx, y, rLat, rLat * 0.28, 0, 0, Math.PI * 2);
+        globeCtx.stroke();
+      }
+
+      for (let lon = 0; lon < 360; lon += 45) {
+        const currentLon = lon * (Math.PI / 180) + globeAngle;
+        const xOffset = Math.sin(currentLon);
+        if (Math.cos(currentLon) > -0.2) {
+          globeCtx.beginPath();
+          globeCtx.ellipse(cx, cy, Math.abs(xOffset) * radius, radius, 0, 0, Math.PI * 2);
+          globeCtx.stroke();
+        }
+      }
+
+      // Saffron destination pin over India coordinates
+      const pinY = cy - 10 + Math.sin(Date.now() * 0.005) * 5;
+      globeCtx.fillStyle = '#f59e0b';
+      globeCtx.beginPath();
+      globeCtx.arc(cx, pinY, 5, 0, Math.PI * 2);
+      globeCtx.fill();
+
+      requestAnimationFrame(renderGlobe);
+    }
+
+    function runIntroSequence() {
+      renderGlobe();
+      setTimeout(() => document.getElementById('word-1').classList.add('visible'), 700);
+      setTimeout(() => document.getElementById('word-2').classList.add('visible'), 1400);
+      setTimeout(() => document.getElementById('word-3').classList.add('visible'), 2100);
+    }
+
+    function closeIntro() {
+      globeActive = false;
+      document.getElementById('cinematic-intro').classList.add('hidden');
+      playSound('whoosh');
+      if (appState.leafletMap) {
+        setTimeout(() => appState.leafletMap.invalidateSize(), 200);
+      }
+    }
+
+    /* ===================================================================
+       7. COMPASS / BEELINE OFFLINE NAVIGATION MODE
+       =================================================================== */
+    const compassCanvas = document.getElementById('compass-canvas');
+    const compCtx = compassCanvas.getContext('2d');
+
+    function drawCompassNeedle(headingDeg, targetBearingDeg) {
+      const cx = 130, cy = 130, r = 100;
+      compCtx.clearRect(0, 0, 260, 260);
+
+      // Outer bezel ring
+      compCtx.beginPath();
+      compCtx.arc(cx, cy, r, 0, Math.PI * 2);
+      compCtx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+      compCtx.fill();
+      compCtx.strokeStyle = 'var(--accent)';
+      compCtx.lineWidth = 3;
+      compCtx.stroke();
+
+      // Cardinal points (N, E, S, W)
+      const cardinals = ['N', 'E', 'S', 'W'];
+      compCtx.font = 'bold 14px Outfit, sans-serif';
+      compCtx.textAlign = 'center';
+      compCtx.textBaseline = 'middle';
+
+      cardinals.forEach((card, idx) => {
+        const angle = (idx * 90 - headingDeg) * (Math.PI / 180);
+        const tx = cx + Math.sin(angle) * (r - 18);
+        const ty = cy - Math.cos(angle) * (r - 18);
+        compCtx.fillStyle = card === 'N' ? '#ef4444' : '#94a3b8';
+        compCtx.fillText(card, tx, ty);
+      });
+
+      // Target direction needle (pointing to destination)
+      const targetAngle = (targetBearingDeg - headingDeg) * (Math.PI / 180);
+      compCtx.save();
+      compCtx.translate(cx, cy);
+      compCtx.rotate(targetAngle);
+
+      // Saffron/Teal Arrow
+      compCtx.beginPath();
+      compCtx.moveTo(0, -r + 28);
+      compCtx.lineTo(14, 15);
+      compCtx.lineTo(0, 5);
+      compCtx.lineTo(-14, 15);
+      compCtx.closePath();
+      compCtx.fillStyle = '#f59e0b';
+      compCtx.fill();
+      compCtx.strokeStyle = '#fff';
+      compCtx.lineWidth = 1.5;
+      compCtx.stroke();
+
+      compCtx.restore();
+
+      // Center pivot
+      compCtx.beginPath();
+      compCtx.arc(cx, cy, 6, 0, Math.PI * 2);
+      compCtx.fillStyle = '#fff';
+      compCtx.fill();
+    }
+
+    function updateCompassDisplay() {
+      drawCompassNeedle(appState.heading, appState.targetBearing);
+      document.getElementById('compass-dist-val').textContent = `${appState.targetDistMeters} m`;
+      document.getElementById('compass-steps-val').textContent = `~${Math.round(appState.targetDistMeters * 1.35)} steps`;
+      document.getElementById('compass-bearing-val').textContent = `${appState.targetBearing}° NE`;
+    }
+
+    if (window.DeviceOrientationEvent) {
+      window.addEventListener('deviceorientation', (e) => {
+        if (e.webkitCompassHeading) {
+          appState.heading = Math.round(e.webkitCompassHeading);
+        } else if (e.alpha) {
+          appState.heading = Math.round(360 - e.alpha);
+        }
+        if (appState.compassActive) updateCompassDisplay();
+      }, true);
+    }
+
+    /* ===================================================================
+       8. LANDMARK-BASED DIRECTIONS GENERATOR
+       =================================================================== */
+    function generateLandmarkDirections(destName, destLat, destLng) {
+      const steps = [
+        { icon: '⬆️', text: 'Start straight past the Chai Stall & Kirana Store', dist: '80m' },
+        { icon: '↗️', text: 'Turn slight right at the Chowk / Banyan Tree', dist: '150m' },
+        { icon: '➡️', text: 'Pass the Mandir / Temple gate on your left', dist: '220m' },
+        { icon: '⬆️', text: 'Continue along the paved track towards the water tank', dist: '180m' },
+        { icon: '🎯', text: `Arrive at ${destName}`, dist: 'Destination' }
+      ];
+
+      const deck = document.getElementById('landmark-steps-deck');
+      deck.innerHTML = '';
+      steps.forEach((s, idx) => {
+        deck.innerHTML += `
+          <div class="landmark-step-item ${idx === 0 ? 'active' : ''}">
+            <div class="step-turn-icon">${s.icon}</div>
+            <div style="flex: 1;">
+              <div style="font-weight: 700; color: #fff; font-size: 0.95rem;">Step ${idx + 1}: ${s.text}</div>
+              <span style="font-size: 0.78rem; color: var(--accent); font-weight: 600;">${s.dist}</span>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    /* Spoken Directions with Web Speech API */
+    function speakDirections() {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const activeLang = appState.lang === 'hi' ? 'hi-IN' : 'en-IN';
+        const msg = appState.lang === 'hi'
+          ? 'सीधे आगे बढ़ें। 150 मीटर बाद पीपल के पेड़ और चौक से दाएं मुड़ें। मंदिर के पास आपका गंतव्य है।'
+          : 'Head straight for 80 meters past the chai stall. Turn right at the chowk past the temple to reach your destination.';
+        const utter = new SpeechSynthesisUtterance(msg);
+        utter.lang = activeLang;
+        utter.rate = 0.95;
+        window.speechSynthesis.speak(utter);
+        showToast('Speaking landmark directions 🔊');
+      } else {
+        showToast('Speech synthesis not supported on this browser.');
+      }
+    }
+
+    /* ===================================================================
+       9. EXPLORE INDIA HUB SHOWCASE RENDERER
+       =================================================================== */
+    function renderExploreIndiaHub() {
+      const container = document.getElementById('india-showcase-cards');
+      container.innerHTML = '';
+
+      EXPLORE_INDIA_DESTINATIONS.forEach(dest => {
+        const card = document.createElement('div');
+        card.className = 'glass-card india-city-card';
+        card.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 1.6rem;">${dest.icon}</span>
+            <span class="badge-pill badge-safe">${dest.state}</span>
+          </div>
+          <div style="font-weight: 800; font-family: var(--font-heading); font-size: 1.1rem; color: #fff; margin-top: 4px;">
+            ${dest.name}
+          </div>
+          <p style="font-size: 0.78rem; color: var(--text-secondary); line-height: 1.35;">
+            ${dest.desc}
+          </p>
+        `;
+        card.addEventListener('click', () => {
+          fetchCityData(`${dest.name}, ${dest.state}`, dest.lat, dest.lng);
+          switchModule('discover');
+        });
+        container.appendChild(card);
+      });
+    }
+
+    /* ===================================================================
+       10. SAVED PLACES SYSTEM (Home, Farm, Clinic, School, Market)
+       =================================================================== */
+    function renderSavedPlaces() {
+      const list = document.getElementById('saved-places-list-container');
+      list.innerHTML = '';
+
+      appState.savedPlaces.forEach(p => {
+        list.innerHTML += `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(0,0,0,0.3); border-radius: var(--radius-md);">
+            <div>
+              <div style="font-weight: 700; color: #fff;">${p.label}</div>
+              <span style="font-size: 0.75rem; color: var(--accent); font-family: monospace;">${p.plusCode}</span>
+            </div>
+            <button type="button" class="btn-primary" style="font-size: 0.78rem; padding: 6px 14px;" onclick="window.navigateToSaved('${p.id}')">
+              Go 🚶
+            </button>
+          </div>
+        `;
+      });
+    }
+
+    window.navigateToSaved = function(placeId) {
+      const p = appState.savedPlaces.find(x => x.id === placeId);
+      if (p) {
+        document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+        switchModule('go');
+        generateLandmarkDirections(p.label, p.lat, p.lng);
+        showToast(`Navigating to ${p.label}`);
+        playSound('safe');
+      }
+    };
+
+    /* ===================================================================
+       11. COMMAND PALETTE (Ctrl+K or /)
+       =================================================================== */
+    const COMMAND_ACTIONS = [
+      { name: '🏥 Find Nearest Hospital / PHC', mod: 'discover', filter: 'hospital' },
+      { name: '💊 Find Nearest Pharmacy', mod: 'discover', filter: 'pharmacy' },
+      { name: '🛕 Find Nearest Temple / Faith', mod: 'discover', filter: 'temple' },
+      { name: '💧 Find Clean Drinking Water Tap', mod: 'discover', filter: 'water' },
+      { name: '🚻 Find Public Toilet', mod: 'discover', filter: 'toilet' },
+      { name: '🧭 Toggle Offline Compass Mode', act: 'compass' },
+      { name: '🛡️ View Safe Route Home', mod: 'go' },
+      { name: '🚨 Open Emergency SOS Hub', mod: 'go' },
+      { name: '🌧️ Switch to Monsoon Rain Theme', theme: 'monsoon' },
+      { name: '🏛️ Switch to Heritage Gold Theme', theme: 'heritage' },
+      { name: '🌐 Change Language to Hindi (हिन्दी)', lang: 'hi' },
+      { name: '🌐 Change Language to English', lang: 'en' },
+      { name: '🤖 Ask Navi: Rainy Night Under ₹500', prompt: 'rainy night, under 500 rupees, with family, want local food and something historic' }
+    ];
+
+    function openCommandPalette() {
+      const modal = document.getElementById('modal-cmd-palette');
+      modal.classList.add('active');
+      const input = document.getElementById('cmd-palette-input');
+      input.value = '';
+      input.focus();
+      renderCommandResults('');
+    }
+
+    function renderCommandResults(query) {
+      const list = document.getElementById('cmd-results-list');
+      const q = query.toLowerCase();
+      const filtered = COMMAND_ACTIONS.filter(c => c.name.toLowerCase().includes(q));
+      list.innerHTML = '';
+      filtered.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'cmd-item';
+        div.textContent = item.name;
+        div.addEventListener('click', () => {
+          document.getElementById('modal-cmd-palette').classList.remove('active');
+          if (item.mod) switchModule(item.mod);
+          if (item.act === 'compass') toggleCompassMode();
+          if (item.theme) setTheme(item.theme);
+          if (item.lang) setLanguage(item.lang);
+          if (item.prompt) {
+            switchModule('navi');
+            generateNaviPlan(item.prompt);
+          }
+        });
+        list.appendChild(div);
+      });
+    }
+
+    document.getElementById('cmd-palette-input').addEventListener('input', (e) => {
+      renderCommandResults(e.target.value);
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey && e.key === 'k') || (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA')) {
+        e.preventDefault();
+        openCommandPalette();
+      }
+    });
+
+    document.getElementById('btn-open-cmd').addEventListener('click', openCommandPalette);
+
+    /* ===================================================================
+       12. CITY DATA FETCHER (Plus Codes & Landmark Vocabulary)
+       =================================================================== */
+    async function fetchCityData(name, lat, lng) {
+      playSound('chime');
+      showToast(`Loading: ${name}`);
+      appState.lat = lat;
+      appState.lng = lng;
+      appState.city = name.split(',')[0].trim();
+
+      document.getElementById('current-location-text').textContent = name;
+      const pc = PlusCode.encode(lat, lng);
+      document.getElementById('plus-code-display').textContent = `${pc} 📋`;
+
+      if (appState.leafletMap) {
+        appState.leafletMap.flyTo([lat, lng], 14, { duration: 1.2 });
+      }
+
+      fetchOpenMeteoWeather(lat, lng);
+      fetchOverpassPlaces(lat, lng);
+      generateLandmarkDirections('Destination', lat, lng);
+    }
+
+    async function fetchOpenMeteoWeather(lat, lng) {
+      try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const data = await res.json();
+          const curr = data.current;
+          appState.weather.temp = curr.temperature_2m;
+          appState.weather.wind = curr.wind_speed_10m;
+          document.getElementById('pulse-temp').textContent = `${curr.temperature_2m}°C`;
+          const cond = curr.precipitation > 0.5 ? 'Monsoon Showers' : 'Clear & Pleasant';
+          document.getElementById('pulse-weather-desc').textContent = `${cond} • Wind ${curr.wind_speed_10m} km/h`;
+          document.getElementById('mood-headline-text').textContent = `${appState.city}: ${cond} • ${curr.temperature_2m}°C • Safe, lively vibe`;
+        }
+      } catch (e) {}
+    }
+
+    async function fetchOverpassPlaces(lat, lng) {
+      appState.places = [...INDIA_SEED_PLACES];
+      applyPlaceFilters();
+      renderMapMarkers();
+      renderGlowPolygons();
+      updateFaceOffSelects();
+    }
+
+    /* Leaflet Map */
+    function initMap() {
+      if (appState.leafletMap) return;
+      const container = document.getElementById('map-view');
+      if (!window.L) {
+        document.getElementById('map-svg-fallback').style.display = 'flex';
+        return;
+      }
+      try {
+        appState.leafletMap = L.map(container, { zoomControl: true }).setView([appState.lat, appState.lng], 14);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+          maxZoom: 19,
+          attribution: '&copy; OSM &copy; CARTO'
+        }).addTo(appState.leafletMap);
+
+        appState.leafletMarkersLayer = L.layerGroup().addTo(appState.leafletMap);
+        appState.leafletGlowLayer = L.layerGroup().addTo(appState.leafletMap);
+
+        renderMapMarkers();
+        renderGlowPolygons();
+      } catch (e) {
+        document.getElementById('map-svg-fallback').style.display = 'flex';
+      }
+    }
+
+    function renderMapMarkers() {
+      if (!appState.leafletMarkersLayer) return;
+      appState.leafletMarkersLayer.clearLayers();
+
+      const places = appState.filteredPlaces.length > 0 ? appState.filteredPlaces : appState.places;
+      places.forEach(p => {
+        let pin = 'pin-chill', icon = '📍';
+        if (p.category === 'food') { pin = 'pin-food'; icon = '🍛'; }
+        else if (p.category === 'historic') { pin = 'pin-historic'; icon = '🏰'; }
+        else if (p.category === 'temple') { pin = 'pin-historic'; icon = '🛕'; }
+        else if (p.category === 'hospital') { pin = 'pin-hospital'; icon = '🏥'; }
+        else if (p.category === 'police') { pin = 'pin-police'; icon = '👮'; }
+
+        const customIcon = L.divIcon({
+          className: 'custom-leaflet-pin',
+          html: `<div class="custom-marker-pin ${pin}">${icon}</div>`,
+          iconSize: [36, 36],
+          iconAnchor: [18, 18]
+        });
+
+        const m = L.marker([p.lat, p.lng], { icon: customIcon });
+        m.bindPopup(`
+          <div style="min-width: 200px;">
+            <strong>${p.name}</strong>
+            <p style="font-size:0.8rem; color:#94a3b8; margin:4px 0;">${p.desc}</p>
+            <span style="font-weight:700; color:#14b8a6;">Roamly Score ${p.roamlyScore}/100</span>
+          </div>
+        `);
+        appState.leafletMarkersLayer.addLayer(m);
+      });
+    }
+
+    function renderGlowPolygons() {
+      if (!appState.leafletGlowLayer) return;
+      appState.leafletGlowLayer.clearLayers();
+      if (!document.getElementById('filter-safety-glow').checked) return;
+
+      appState.places.forEach(p => {
+        if (p.safetyIndex >= 90) {
+          L.circle([p.lat, p.lng], {
+            radius: 220,
+            color: '#10b981',
+            fillColor: '#10b981',
+            fillOpacity: 0.15,
+            weight: 1.5,
+            dashArray: '3, 6'
+          }).addTo(appState.leafletGlowLayer);
+        }
+      });
+    }
+
+    function applyPlaceFilters() {
+      const activeCat = document.querySelector('.cat-filter.active')?.dataset.cat || 'all';
+      const openNow = document.getElementById('filter-open-now').checked;
+      const currentHour = appState.timeHour;
+
+      appState.filteredPlaces = appState.places.filter(p => {
+        if (activeCat !== 'all' && p.category !== activeCat) return false;
+        if (openNow && (currentHour < p.openHour || currentHour >= p.closeHour)) return false;
+        return true;
+      });
+
+      renderPlaceCards();
+      document.getElementById('places-count').textContent = appState.filteredPlaces.length;
+    }
+
+    function renderPlaceCards() {
+      const list = document.getElementById('places-cards-list');
+      list.innerHTML = '';
+      appState.filteredPlaces.forEach(p => {
+        list.innerHTML += `
+          <div class="glass-card" style="padding: 14px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div>
+                <strong style="font-size: 1.05rem; font-family: var(--font-heading); color: #fff;">${p.name}</strong>
+                <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">${p.category.toUpperCase()} • ${p.priceTier}</span>
+              </div>
+              <span style="font-weight: 800; font-family: var(--font-heading); color: var(--accent); font-size: 1.2rem;">${p.roamlyScore}<small>/100</small></span>
+            </div>
+            <p style="font-size: 0.82rem; color: var(--text-secondary);">${p.desc}</p>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 6px;">
+              <span class="badge-pill badge-safe">🛡️ Safety ${p.safetyIndex}%</span>
+              <button type="button" class="btn-primary" style="font-size: 0.75rem; padding: 4px 12px;" onclick="window.startNavigateToPlace('${p.id}')">
+                Navigate →
+              </button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    window.startNavigateToPlace = function(id) {
+      const p = appState.places.find(x => x.id === id);
+      if (p) {
+        switchModule('go');
+        generateLandmarkDirections(p.name, p.lat, p.lng);
+        showToast(`Route prepared for ${p.name}!`);
+        playSound('safe');
+      }
+    };
+
+    /* Face-Off */
+    function updateFaceOffSelects() {
+      const selA = document.getElementById('faceoff-select-a');
+      const selB = document.getElementById('faceoff-select-b');
+      selA.innerHTML = ''; selB.innerHTML = '';
+      appState.places.forEach(p => {
+        selA.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+        selB.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+      });
+      if (appState.places.length >= 2) {
+        selA.selectedIndex = 0; selB.selectedIndex = 1;
+        renderFaceOff();
+      }
+    }
+
+    function renderFaceOff() {
+      const pA = appState.places.find(x => x.id === document.getElementById('faceoff-select-a').value) || appState.places[0];
+      const pB = appState.places.find(x => x.id === document.getElementById('faceoff-select-b').value) || appState.places[1];
+      if (!pA || !pB) return;
+
+      document.getElementById('faceoff-th-a').textContent = pA.name;
+      document.getElementById('faceoff-th-b').textContent = pB.name;
+
+      const metrics = [
+        { name: 'Safety', a: pA.safetyIndex, b: pB.safetyIndex },
+        { name: 'Cleanliness', a: pA.cleanliness, b: pB.cleanliness },
+        { name: 'Roamly Score', a: pA.roamlyScore, b: pB.roamlyScore },
+        { name: 'Accessibility', a: pA.accessibility, b: pB.accessibility }
+      ];
+
+      const tbody = document.getElementById('faceoff-tbody');
+      tbody.innerHTML = '';
+      metrics.forEach(m => {
+        tbody.innerHTML += `
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding:6px; font-weight:600;">${m.name}</td>
+            <td style="padding:6px; color:${m.a >= m.b ? 'var(--safe)' : 'var(--text-secondary)'}; font-weight:${m.a >= m.b ? '700' : '400'};">${m.a}</td>
+            <td style="padding:6px; color:${m.b >= m.a ? 'var(--safe)' : 'var(--text-secondary)'}; font-weight:${m.b >= m.a ? '700' : '400'};">${m.b}</td>
+          </tr>
+        `;
+      });
+
+      if (window.Chart) {
+        const c = document.getElementById('faceoff-radar-chart');
+        if (appState.radarChartInstance) appState.radarChartInstance.destroy();
+        appState.radarChartInstance = new Chart(c, {
+          type: 'radar',
+          data: {
+            labels: metrics.map(m => m.name),
+            datasets: [
+              { label: pA.name, data: metrics.map(m => m.a), borderColor: '#14b8a6', backgroundColor: 'rgba(20,184,166,0.25)' },
+              { label: pB.name, data: metrics.map(m => m.b), borderColor: '#ec4899', backgroundColor: 'rgba(236,72,153,0.25)' }
+            ]
+          },
+          options: {
+            responsive: true,
+            scales: { r: { suggestedMin: 50, suggestedMax: 100 } }
+          }
+        });
+      }
+    }
+
+    document.getElementById('faceoff-select-a').addEventListener('change', renderFaceOff);
+    document.getElementById('faceoff-select-b').addEventListener('change', renderFaceOff);
+
+    /* Navi AI */
+    function generateNaviPlan(query) {
+      playSound('chime');
+      const q = query.toLowerCase();
+      let title = 'Custom Tailored City Adventure';
+      let stops = [];
+      let cost = '₹350 total';
+      let weather = 'Mild & dry evening.';
+      let backup = 'Divert to adjacent covered lane if rain starts.';
+
+      if (q.includes('500') || q.includes('rupees') || q.includes('family') || q.includes('rain')) {
+        title = 'Evening Chandni Chowk Covered Bazaar & Paratha Walk';
+        cost = '₹380 total for family';
+        stops = [
+          { time: '18:30', name: 'Gali Paranthe Wali', tip: 'Hot parathas & fresh lassi under rain-sheltered awning' },
+          { time: '19:45', name: 'Gurudwara Sis Ganj Sahib', tip: 'Peaceful illuminated prayer hall & safe seating' },
+          { time: '20:45', name: 'Dariba Kalan Heritage Lane', tip: 'Well-lit silver bazaar promenade' }
+        ];
+        weather = 'Covered arcades protect from rain showers.';
+        backup = 'Head directly to Red Fort metro corridor if storm intensifies.';
+      } else if (q.includes('clinic') || q.includes('field')) {
+        title = 'Safe Field-to-Clinic Protected Route';
+        cost = 'Free / ₹20 shared auto';
+        stops = [
+          { time: 'Now', name: 'Village Field Track Point', tip: 'Follow well-beaten earthen path towards chowk' },
+          { time: 'T+10m', name: 'Panchayat Bhavan Landmark', tip: 'Paved street begins with active street lights' },
+          { time: 'T+20m', name: 'Primary Health Centre (PHC)', tip: '24/7 emergency doctor on call' }
+        ];
+        weather = 'Clear visibility on farm track.';
+        backup = 'Contact ASHA worker at Panchayat if clinic queue is full.';
+      } else {
+        title = 'Evening Cultural Heritage & Tea Walk';
+        cost = '₹120 total';
+        stops = [
+          { time: '18:00', name: 'Lodhi Gardens Heritage Trail', tip: 'Sunset views through Mughal sandstone arches' },
+          { time: '19:15', name: 'Khan Market Chai Point', tip: 'Warm cardamom tea & snack' }
+        ];
+      }
+
+      document.getElementById('plan-title').textContent = title;
+      document.getElementById('plan-cost-badge').textContent = `🪙 ~${cost}`;
+      document.getElementById('plan-weather-advice').textContent = weather;
+      document.getElementById('plan-backup-advice').textContent = backup;
+
+      const cont = document.getElementById('plan-stops-container');
+      cont.innerHTML = '';
+      stops.forEach((s, idx) => {
+        cont.innerHTML += `
+          <div style="display: flex; gap: 10px; align-items: flex-start; padding: 10px; background: rgba(0,0,0,0.25); border-radius: var(--radius-sm);">
+            <strong style="color: var(--accent); font-family: var(--font-heading); min-width: 50px;">${s.time}</strong>
+            <div>
+              <div style="font-weight: 700; color: #fff;">${s.name}</div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary);">${s.tip}</div>
+            </div>
+          </div>
+        `;
+      });
+
+      const box = document.getElementById('navi-messages-box');
+      box.innerHTML += `
+        <div style="align-self: flex-end; padding: 10px 14px; background: var(--accent); color: #000; font-weight: 600; border-radius: 14px; font-size: 0.88rem; max-width: 85%;">
+          ${query}
+        </div>
+        <div style="align-self: flex-start; padding: 10px 14px; background: rgba(255,255,255,0.08); border-radius: 14px; font-size: 0.88rem; max-width: 85%;">
+          Here is your complete plan: <strong>${title}</strong>. Budget checked and landmark-guided!
+        </div>
+      `;
+      box.scrollTop = box.scrollHeight;
+    }
+
+    document.getElementById('navi-chat-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const val = document.getElementById('navi-text-input').value.trim();
+      if (val) {
+        generateNaviPlan(val);
+        document.getElementById('navi-text-input').value = '';
+      }
+    });
+
+    document.querySelectorAll('.prompt-chip').forEach(btn => {
+      btn.addEventListener('click', () => generateNaviPlan(btn.dataset.prompt));
+    });
+
+    document.getElementById('btn-read-plan-tts').addEventListener('click', () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const t = document.getElementById('plan-title').textContent;
+        const c = document.getElementById('plan-cost-badge').textContent;
+        const utter = new SpeechSynthesisUtterance(`Here is your Roamly plan: ${t}. Estimated cost ${c}.`);
+        utter.rate = 1.0;
+        window.speechSynthesis.speak(utter);
+        showToast('Reading out plan 🔊');
+      }
+    });
+
+    /* NLP Citizen Reports Feed */
+    function renderReportsFeed() {
+      const list = document.getElementById('reports-feed-list');
+      list.innerHTML = '';
+      appState.citizenReports.forEach(r => {
+        list.innerHTML += `
+          <div class="glass-card" style="padding: 12px; display: flex; flex-direction: column; gap: 6px;">
+            <div style="display: flex; justify-content: space-between;">
+              <span class="badge-pill ${r.status === 'Verified' ? 'badge-safe' : 'badge-caution'}">● ${r.status} (${r.trustScore}%)</span>
+              <span style="font-size: 0.72rem; color: var(--text-muted);">${r.category.toUpperCase()}</span>
+            </div>
+            <p style="font-size: 0.84rem; color: #fff;">${r.desc}</p>
+          </div>
+        `;
+      });
+    }
+
+    document.getElementById('citizen-report-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const desc = document.getElementById('report-description').value;
+      const cat = document.getElementById('report-category').value;
+      const newRep = {
+        id: `rep-${Date.now()}`,
+        category: cat,
+        desc: desc,
+        lat: appState.lat,
+        lng: appState.lng,
+        timestamp: Date.now(),
+        trustScore: 82,
+        status: 'Verified',
+        sentiment: 0.5,
+        upvotes: 1
+      };
+      appState.citizenReports.unshift(newRep);
+      renderReportsFeed();
+      playSound('chime');
+      showToast('Citizen report filed and verified! 📢');
+      document.getElementById('citizen-report-form').reset();
+    });
+
+    /* Passport Stamps */
+    const STAMPS = [
+      { id: 'welcome', name: 'First Steps', icon: '🌍' },
+      { id: 'india_explorer', name: 'Bharat Yatri', icon: '🇮🇳' },
+      { id: 'heritage', name: 'Mandir & Fort Chronicler', icon: '🛕' },
+      { id: 'compass', name: 'Field Compass Master', icon: '🧭' },
+      { id: 'citizen', name: 'Truth Guardian', icon: '📢' }
+    ];
+
+    function renderPassportStamps() {
+      const g = document.getElementById('passport-stamps-grid');
+      g.innerHTML = '';
+      STAMPS.forEach(s => {
+        const un = appState.unlockedStamps.has(s.id);
+        g.innerHTML += `
+          <div class="glass-card" style="padding: 14px; text-align: center; border: ${un ? '2px solid var(--accent)' : '2px dashed var(--border)'};">
+            <div style="font-size: 2.2rem; filter: ${un ? 'none' : 'grayscale(1) opacity(0.3)'};">${s.icon}</div>
+            <div style="font-size: 0.8rem; font-weight: 700; margin-top: 6px;">${s.name}</div>
+            <span style="font-size: 0.7rem; color: var(--text-muted);">${un ? 'Earned' : 'Locked'}</span>
+          </div>
+        `;
+      });
+    }
+
+    /* UI Navigation & Helpers */
+    function switchModule(modId) {
+      document.querySelectorAll('.module-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.module === modId));
+      const target = document.getElementById(`module-${modId}`);
+      if (target) target.classList.add('active');
+      appState.activeModule = modId;
+      playSound('whoosh');
+
+      if (modId === 'discover' && appState.leafletMap) {
+        setTimeout(() => appState.leafletMap.invalidateSize(), 150);
+      }
+    }
+
+    document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => switchModule(btn.dataset.module));
+    });
+
+    document.querySelectorAll('.feature-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const jump = card.dataset.jump;
+        if (jump === 'sos') {
+          switchModule('go');
+        } else if (jump === 'saved') {
+          document.getElementById('modal-saved-places').classList.add('active');
+        } else if (jump === 'offline') {
+          toggleCompassMode();
+        } else if (jump === 'report') {
+          switchModule('pulse');
+        } else {
+          switchModule(jump);
+        }
+      });
+    });
+
+    function toggleCompassMode() {
+      appState.compassActive = !appState.compassActive;
+      const box = document.getElementById('compass-mode-box');
+      box.style.display = appState.compassActive ? 'flex' : 'none';
+      if (appState.compassActive) {
+        switchModule('go');
+        updateCompassDisplay();
+        showToast('Compass / Beeline mode active 🧭');
+      }
+    }
+    document.getElementById('btn-toggle-compass').addEventListener('click', toggleCompassMode);
+
+    function showToast(msg) {
+      const c = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      t.className = 'glass-card';
+      t.style.padding = '8px 14px';
+      t.style.fontSize = '0.82rem';
+      t.style.borderLeft = '3px solid var(--accent)';
+      t.textContent = msg;
+      c.appendChild(t);
+      setTimeout(() => t.remove(), 3000);
+    }
+
+    function setTheme(th) {
+      appState.theme = th;
+      document.body.setAttribute('data-theme', th);
+      RoamlyStorage.set('theme', th);
+      initBgParticles();
+      playSound('whoosh');
+      showToast(`Theme: ${th.toUpperCase()}`);
+    }
+
+    document.querySelectorAll('.theme-btn').forEach(b => {
+      b.addEventListener('click', () => setTheme(b.dataset.theme));
+    });
+    document.getElementById('btn-theme-palette').addEventListener('click', () => {
+      const themes = ['dusk', 'neon', 'morning', 'monsoon', 'heritage'];
+      const next = themes[(themes.indexOf(appState.theme) + 1) % themes.length];
+      setTheme(next);
+    });
+
+    function setLanguage(l) {
+      appState.lang = l;
+      const dict = I18N[l] || I18N.en;
+      document.querySelector('.brand-tagline').textContent = dict.tagline;
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+        const mod = btn.dataset.module;
+        if (dict[mod]) {
+          const span = btn.querySelector('span:last-child');
+          if (span) span.textContent = dict[mod];
+        }
+      });
+      RoamlyStorage.set('lang', l);
+      showToast(`Language: ${l.toUpperCase()}`);
+    }
+
+    document.getElementById('settings-lang-select').addEventListener('change', (e) => setLanguage(e.target.value));
+    document.getElementById('btn-quick-lang').addEventListener('click', () => {
+      document.getElementById('modal-settings').classList.add('active');
+    });
+
+    /* Floating Radial Hub */
+    const radialHub = document.getElementById('btn-radial-hub');
+    radialHub.addEventListener('click', () => {
+      document.body.classList.toggle('radial-open');
+      playSound('pop');
+    });
+
+    document.querySelectorAll('.radial-sub-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.body.classList.remove('radial-open');
+        const act = btn.dataset.act;
+        if (act === 'search') document.getElementById('app-search-input').focus();
+        else if (act === 'gps') useUserGPS();
+        else if (act === 'navigate') switchModule('go');
+        else if (act === 'sos') switchModule('go');
+        else if (act === 'navi') switchModule('navi');
+      });
+    });
+
+    document.getElementById('btn-floating-sos').addEventListener('click', () => {
+      switchModule('go');
+      playSound('caution');
+    });
+
+    /* GPS Acquisition */
+    function useUserGPS() {
+      if (navigator.geolocation) {
+        showToast('Acquiring high-accuracy GPS...');
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            fetchCityData('Your GPS Location', pos.coords.latitude, pos.coords.longitude);
+            closeIntro();
+          },
+          () => {
+            showToast('GPS denied. Loaded Delhi.');
+            closeIntro();
+          }
+        );
+      }
+    }
+    document.getElementById('btn-use-gps').addEventListener('click', useUserGPS);
+    document.getElementById('btn-intro-geo').addEventListener('click', useUserGPS);
+
+    /* Quick intro buttons */
+    document.querySelectorAll('.intro-quick-city').forEach(b => {
+      b.addEventListener('click', () => {
+        closeIntro();
+        fetchCityData(b.dataset.name, parseFloat(b.dataset.lat), parseFloat(b.dataset.lng));
+      });
+    });
+    document.getElementById('btn-skip-intro').addEventListener('click', closeIntro);
+
+    /* Category shortcut clicks */
+    document.querySelectorAll('.cat-shortcut-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const cat = item.dataset.cat;
+        switchModule('discover');
+        showToast(`Filtering for ${cat.toUpperCase()}`);
+      });
+    });
+
+    /* Voice directions button */
+    document.getElementById('btn-voice-directions-toggle').addEventListener('click', speakDirections);
+
+    /* Modal listeners */
+    document.querySelectorAll('.btn-close-modal').forEach(b => {
+      b.addEventListener('click', () => document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active')));
+    });
+    document.getElementById('btn-open-settings').addEventListener('click', () => {
+      document.getElementById('modal-settings').classList.add('active');
+    });
+
+    /* Sound Toggle */
+    document.getElementById('btn-sound-toggle').addEventListener('click', () => {
+      appState.soundEnabled = !appState.soundEnabled;
+      document.getElementById('icon-sound-state').textContent = appState.soundEnabled ? '🔊' : '🔇';
+      if (appState.soundEnabled) {
+        initAudio();
+        playSound('chime');
+        showToast('Sound enabled 🔊');
+      } else {
+        showToast('Sound muted 🔇');
+      }
+    });
+
+    /* Plus code copy */
+    document.getElementById('plus-code-display').addEventListener('click', () => {
+      const code = document.getElementById('plus-code-display').textContent.split(' ')[0];
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(code);
+        showToast('Plus Code copied! 📋');
+      }
+    });
+
+    /* ===================================================================
+       13. INITIALIZATION
+       =================================================================== */
+    window.addEventListener('DOMContentLoaded', () => {
+      resizeBgCanvas();
+      renderBgScene();
+      runIntroSequence();
+      initMap();
+
+      renderExploreIndiaHub();
+      renderSavedPlaces();
+      renderPassportStamps();
+      renderReportsFeed();
+
+      fetchCityData('New Delhi, India', 28.6139, 77.2090);
+
+      // Restore saved preferences
+      const savedTheme = RoamlyStorage.get('theme', 'dusk');
+      if (savedTheme) setTheme(savedTheme);
+      const savedLang = RoamlyStorage.get('lang', 'en');
+      if (savedLang) setLanguage(savedLang);
+
+      console.log('Roamly India-First & Everywhere Navigation App initialized.');
+    });
+  </script>
+</body>
+</html>
